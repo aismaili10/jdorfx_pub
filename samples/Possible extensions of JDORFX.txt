@@ -1,0 +1,42 @@
+Possible extensions for JDORFX
+
+
+
+Modifying existing Implementations:
+
+set Depth Buffer of Scene to true (allows 3D shapes to clip into each other instead of overlay, allowing more complex shapes)
+(in JavaFXDrawingFrame / Scene constructor auf true setzten (bei super(new Group());))
+
+Transformations of Camera Objects (Translate, Rotate)
+
+Setting Clipping Planes of Camera Objects (setNearClip / setFarClip)
+
+Transformations of Point Light Objects
+
+Setting Cullface Property of 3D shapes (removal of improperly oriented parts of a 3D shape)
+
+
+
+New Implementations of Classes:
+
+TriangleMesh / MeshView (subclass of mesh for user defined shapes; probably a bit complex for students with little expierience with 3D modeling)
+
+Effects (adds effects to Nodes, eg Shadow, Lighting, Glow,...)
+
+Animations
+
+Subscene (eg for two scenes with different perspective camera objects)
+
+Charts
+
+MediaView (video / audio)
+
+WebView
+
+EventHandler (for interactivity)
+
+
+
+
+Philipp Schaller 
+07-06-2024

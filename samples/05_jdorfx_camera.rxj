@@ -1,0 +1,133 @@
+#!/usr/bin/env rexx
+/*
+   license:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2024 Philipp Schaller, Rony G. Flatscher
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Create a scene with the default parallel camera"
+-- creating a new window with size 500 x 500
+newimage 500 500
+-- show created window
+winshow
+-- create new sphere with name "mySphere" at location x=50, y=200, z=0 and a radius=50
+shape3d mySphere sphere 205 225 0 50
+-- create new box with name "myBox" at location x=200, y=200, z=0
+-- and size: width=100, height=100, depth=100
+shape3d myBox box 325 150 0 100 100 100
+-- create new cylinder with name "myCylinder" at location x=350, y=200, z=0
+-- and size: radius=50, height=200
+shape3d myCylinder cylinder 325 350 0 50 100
+-- place mySphere onto scene with filled vertices; also: fillshape3d
+fill3dshape mySphere
+-- place myBox onto scene as line / wireframe model; also: drawshape3d
+draw3dshape myBox
+-- place myCylinder onto scene with filled vertices; also: fillshape3d
+fill3dshape myCylinder
+say
+say "Hint: by default a parallel camera gets used"
+say "Sleep for 5 seconds"
+sleep 5
+
+-- demonstrate usage of a parallel camera
+   say "Create a new parallel camera named 'parallelCamera':"
+   say "   Location: x=0 y=100 z=-200"
+   say "   Note: The z variable has no impact on a parallel camera"
+   --create parallelCamera
+   camera parallelCamera parallel 0 100 (-200)
+   -- set view to parallelCamera
+   setcamera  parallelCamera
+   sleep 5
+
+   say "Creating parallel cameras with different x, y and z locations:"
+   do counter k i=0 to 200 by 50
+      name=parallelCamera||k
+      say "x="i "y="i "z="i
+      camera name parallel i i i
+      setcamera name
+      sleep 0.5
+   end
+
+   do counter k i=0 to -200 by -50
+      name=parallelCamera||k
+      say "x="i "y="i "z="i
+      camera name parallel i i i
+      setcamera name
+      sleep 0.5
+   end
+--
+
+
+say "Creating a perspective camera  named 'perspectiveCamera1':"
+say "   Location: x=-50 y=-100 z=-100, default fieldOfView=30"
+--create perspectiveCamera1
+camera perspectiveCamera1 perspective (-50) (-100) (-100)
+-- set view to perspectiveCamera1
+setcamera  perspectiveCamera1
+say
+say "Sleep for 5 seconds"
+sleep 5
+say "Create a new perspective camera named 'perspectiveCamera2':"
+say "   Location: x=200 y=0 z=-50, fieldOfView=150"
+--create perspectiveCamera2
+camera perspectiveCamera2 perspective 200 0 (-50) 150
+-- set view to perspectiveCamera1
+setcamera  perspectiveCamera2
+say
+say "Sleep for 5 seconds"
+sleep 5
+
+say "Create parallel camera named 'parallelCamera' (from above):"
+say "   Location: x=0 y=0 z=-0"
+say "   Note: The z variable has no impact on a parallel camera"
+--create parallelCamera
+camera parallelCamera2 parallel 0 0 0
+-- set view to parallelCamera
+setcamera  parallelCamera
+say
+say "Sleep for 5 seconds"
+sleep 5
+--
+   say "Creating perspective cameras with different x, y and z locations and fieldOfViews:"
+   do counter k i=0 to 100 by 20
+      name=perspCamera||k
+      say "x="i "y="i "z="i "fieldOfView="i
+      camera name perspective i i i (i*2)
+      setcamera name
+      sleep 0.5
+   end
+
+   do counter k i=0 to -100 by -20
+      name=perspCamera||k
+      say "x="i "y="i "z="i "fieldOfView="i
+      camera name perspective i i i (i*2)
+      setcamera name
+      sleep 0.5
+   end
+say "Sleep for 5 seconds, then ending"
+sleep 5
+--
+
+ -- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

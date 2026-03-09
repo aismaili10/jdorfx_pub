@@ -1,0 +1,290 @@
+The following commands were newly created for JDORFX:
+
+Command
+	Argument		-- Info
+	[optional Argument]
+
+shape3d
+	String nickName		-- Queries 3D shape with nickName
+				-- if no such shape exists, return error
+
+shape3d
+	String nickName		-- creates 3D shape with nickName
+	"box"			-- creates a box
+	Double x  		-- sets location coordinates to x
+	Double y  		-- sets location coordinates to y
+	Double z  		-- sets location coordinates to z
+	Double width  		-- sets width of box
+	Double height  		-- sets height of box
+	Double depth		-- sets depth of box
+
+shape3d
+	String nickName		-- creates 3D shape with nickName
+	"cylinder"		-- creates a cylinder
+	Double x  		-- sets location coordinates to x
+	Double y  		-- sets location coordinates to y
+	Double z  		-- sets location coordinates to z
+	Double radius  		-- sets radius of cylinder
+	Double height  		-- sets height of cylinder
+
+shape3d
+	String nickName		-- creates 3D shape with nickName
+	"sphere"		-- creates a sphere
+	Double x  		-- sets location coordinates of x
+	Double y  		-- sets location coordinates of y
+	Double z  		-- sets location coordinates of z
+	Double radius  		-- sets radius of sphere
+
+draw3dShape
+drawShape3d
+	String nickName		-- draws 3D shape with nickName to scene as wire model
+				-- if no such shape exists, return error
+
+fill3dShape
+fillShape3d
+	String nickName		-- draws 3D shape with nickName to scene with filled veretices
+				-- if no such shape exists, return error
+
+camera
+				-- no arguments supplied -> query last set camera
+
+camera
+	String nickName		-- Queries camera with nickName
+				-- if no such camera exists, return error
+
+camera
+	String nickName		-- Creates new camera
+	"parallel"		-- Creates new parallel Camera
+	Double x  		-- sets location coordinates of x
+	Double y  		-- sets location coordinates of y
+	Double z  		-- sets location coordinates of z
+				-- z value does not influence location of parallel camera
+				-- A parallel camera looks at the xy plane
+				-- and possess viewing volume for parallel projection
+
+camera
+	String nickName		-- Creates new camera
+	"perspective"		-- Creates new perspective Camera
+	Double x  		-- sets location coordinates of x
+	Double y  		-- sets location coordinates of y
+	Double z  		-- sets location coordinates of z
+	[Double fieldOfView]	-- set field of view
+				-- if omitted, default will be 30
+				-- A perspective camera looks at the xy plane
+				-- and defines the viewing volume for a
+				-- perspective projection (fieldOfView)
+
+setCamera
+				-- if no arguments supplied ->
+				-- set to default parallel camera
+
+setCamera
+	String nickName		-- sets named camera as new camera of scene
+				-- if no such camera exists, return error
+
+light
+	String nickName		-- Queries light with nickName
+				-- if no such light exists, return error
+
+light
+	String nickName		-- creates new light
+	"ambient"		-- creates ambient light
+	[String color]		-- sets the color of light
+				-- if omitted, default color is white
+				-- when first new light is created ->
+				-- default ambient light will be turned off
+				-- An ambient light is a light source
+				-- that radiates from all directions
+
+light
+	String nickName		-- creates new light
+	"point"			-- creates point light
+	Double x  		-- sets location coordinates of x
+	Double y  		-- sets location coordinates of y
+	Double z  		-- sets location coordinates of z
+	[String color]		-- sets the color of light
+				-- if omitted, default color is white
+				-- when first new light is created ->
+				-- default ambient light will be turned off
+				-- A point light projects light in all
+				-- directions away from its position
+
+setLight
+	String nickName		-- sets light with nickName to scene
+	["turnOn" / "turnOff"]	-- if omitted or "turnOn" -> turn on light with nickName
+				-- if "turnOff" -> turn off light with nickName
+
+
+rotate3dShape
+rotateShape3d
+	String nickName		-- rotates 3D shape with nickName
+	Double angle		-- rotates shape with angle
+	Double pivotX		-- set x coordinates of pivot point
+	Double pivotY		-- set y coordinates of pivot point
+	Double pivotZ		-- set z coordinates of pivot point
+	Double axisX (0-1.0)	-- rotates shape with (percent of) angle around x axis
+	Double axisY (0-1.0)	-- rotates shape with (percent of) angle around y axis
+	Double axisZ (0-1.0)	-- rotates shape with (percent of) angle around z axis
+				-- 0 0 1 rotates the shape on the z axis
+
+scale3dshape
+scaleShape3d
+	String nickName		-- scales 3D shape with nickName
+	Double x		-- scale x of shape (2.0 -> doubles size on x axis)
+	Double y		-- scale y of shape
+	Double z		-- scale z of shape
+
+shear3dShape
+shearShape3d
+	String nickName 	-- shears 3D shape with nickName
+	Double x		-- shears x of shape
+	Double y		-- shears y of shape
+
+translate3dShape
+translateShape3d
+	String nickName		-- moves 3D shape
+	Double x		-- moves shape on x axis
+	Double y		-- moves shape on y axis
+	Double z		-- moves shape on z axis
+				-- transformations can stack
+
+map
+	String nickName		-- stores image with nickName
+	String imagePath	-- file path of image
+
+map
+	String nickName		-- stores image with nickName
+	String imagePath	-- file path of image
+	Integer addWidth	-- add width to image to change proportions
+	Integer addHeight	-- add height to image to change proportions
+	Double angle		-- rotate image with angle around centre
+	[String color]		-- fill all transparent pixels of image with color
+				-- if omitted -> pixels stay transparent
+				-- if rotation values not 0, 90, 180, 270, 360
+				-- -> may lead to loss of image quality
+
+material
+	String nickName		-- creates new material with nickName
+	[String color]		-- sets the diffuse color of material
+				-- if omitted -> default is white
+
+materialColor
+	String nickName		-- sets color to material with nickName
+	String colorType*	-- sets type of color
+	String color		-- sets color value
+	[Double specularPower]	-- if color type "specular" / "specularColor"
+				-- -> sets specular power
+				-- if omitted -> default is 32
+				-- *colorTypes:
+				-- "diffuse" / "diffuseColor"
+				-- -> base color of material
+				-- "specular" / "specularColor"
+				-- -> color of light that is reflecting from surface
+				-- specularPower: smoothness of material
+				-- smaller -> narrower reflection / smoother surface
+				-- if no such material exists, return error
+
+materialMap
+	String nickName		-- adds image as map to material
+	String mapType*		-- sets type of map
+	String imagePath/name	-- file path of image or variable name of image
+				-- *mapTypes:
+				-- "bump" / "bumpMap"
+				-- -> normal map as RGB image for  material
+				-- -> It adds depth to the surface’s image.
+				-- "diffuse" / "diffuseMap"
+				-- -> image as surface of material
+				-- "selfIllumination" / "selfIlluminationMap"
+				-- -> selfillumination effect of material
+				-- "specular" / "specularMap"
+				-- -> reflection properties of material
+				-- -> Brighter pixels -> brighter reflection
+				-- if no such material exists, return error
+
+setMaterial
+	String sNickName	-- add material to shape with sNickName
+	String mNickName	-- mNickName of material
+				-- if no such shape or material, return error
+
+
+
+
+=================================================================================================
+The following JDOR commands were directly adopted into JDORFX:
+winScreenSize
+sleep
+assignRc
+
+
+=================================================================================================
+The following JDOR commands were translated into JDORFX implementing JavaFX:
+winShow
+winHide
+winClose
+winLocation
+winAlwaysOnTop
+winToBack
+winToFront
+winAlwaysOnTopSupported
+winTitle
+winFrame
+winResizable
+winVisible
+winUpdate
+winSize
+scale
+shear
+newImage
+getState
+color
+background
+drawPolyline
+drawPolygon
+fillPolygon
+stroke
+fontStyle
+fontSize
+font
+reset
+moveTo
+drawLine
+drawString
+stringBounds
+drawOval
+fillOval
+drawRoundRect
+fillRoundRect
+drawRect
+fillRect
+clearRect
+drawArc
+fillArc
+gc
+rotate
+translate
+transform
+shape
+drawShape
+fillShape
+clipShape
+shapeBounds
+areaAdd
+areaExclusiveOr
+areaIntersect
+areaSubtract
+areaTransform
+pathAppend
+pathClose
+pathReset
+pathCurrentPoint
+pathClone
+pathLineTo
+pathMoveTo
+pathQuadTo
+pathCurveTo
+pathTransform
+pathWindingRulle
+
+
+26-05-2024
+Philipp Schaller

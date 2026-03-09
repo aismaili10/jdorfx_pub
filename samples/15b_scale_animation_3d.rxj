@@ -1,0 +1,51 @@
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example 2: Rotating Box"
+newimage 500 500
+winTitle "JDORFX Animation - Box Rotation"
+
+-- create 3D shape (Box)
+shape3d rockBox box 250 250 0 100 100 100
+fill3dShape rockBox
+
+-- create new material named rock
+material rock
+-- add image with pathname "rock_diffuse.jpg" as diffuse map to material rock
+materialmap rock diffuse "rock_diffuse.jpg"
+-- add material rock to rockBox
+setmaterial rockBox rock
+
+-- Create rotation animation
+-- Parameters: animName, nodeName, duration, byAngle, cycleCount, autoReverse, axisX, axisY, axisZ
+animationRotate rotateAnim rockBox 10000 360 "-1" .true, 1, 1, 1
+
+-- Create scale animation
+-- Parameters: animName, nodeName, duration, byX, byY, byZ, cycleCount, autoReverse
+animationScale scaleAnim rockBox 3000 0.3 0.3 0.3 "-1" .true
+
+-- play animation
+animationPlay rotateAnim
+animationPlay scaleAnim
+
+-- create perspective camera and add to scene
+camera camera perspective 0 0 0
+setcamera camera
+
+winShow
+
+say "Box rotating and scaling ..."
+say "Press Enter to exit..."
+pull .
+
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

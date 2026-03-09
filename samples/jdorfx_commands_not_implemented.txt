@@ -1,0 +1,36 @@
+The following JDOR commands were not implemented into JDORFX:
+printScaleToPage
+printScale
+printPos
+clipboardGet
+clipboardSet
+clipboardSetWithoutAlpha
+printImage
+preferredImageType
+imageType
+imageCopy
+imageSize
+gradientPaint
+setPaintMode
+paint
+setXorMode
+composite
+render
+clipRemove
+clip
+copyArea
+draw3dRect
+fill3dRect
+loadImage
+getImage
+saveImage
+drawImage
+pushGc
+popGc
+pushImage
+popImage
+shapeGetPathIterator
+
+
+26-05-2024
+Philipp Schaller

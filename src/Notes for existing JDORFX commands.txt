@@ -1,0 +1,41 @@
+Notes for existing JDORFX commands
+
+
+winFrame:
+
+- in JDOR, ONCE THE WINDOW IS SHOWN, it is possible change the visibility of the frame
+- in JDORFX, ONCE THE WINDOW IS SHOWN and the command winFrame true / false is supplied, the following error message is shown:
+java.lang.IllegalArgumentException: WinFrame cannot be changed once the window  has been set to visible
+- hiding the window, then changing property and then showing window again does not work!!
+
+- new solution is needed, if JDORFX should match exactly with JDOR
+- possible solution: remove scene from stage and set it again with new frame visibility property
+
+
+
+pathAppend (any shape): 
+
+- in JDOR, if a closed named shape (e.g. Rectangle, Ellipse,...) is appended to a named Path and the connect argument is set to true, the Path will be closed automatically (Line to starting point of path)
+- eg pathAppend myPath myShape true
+- this does not apply to open shapes (e.g. Line, CubicCurve,...), the Path will not be closed automatically
+- in JDORFX, all paths will be closed if the connect argument is set to true, regardless of the supplied named shape
+
+- new solution is needed, if JDORFX should match exactly with JDOR
+- possible solution: implement different outputs for closed or open shapes according to JDOR
+
+
+
+pathAppend in case of shape Arc
+
+- problem: shape Arc has properties startAngle and length, pathElement ArcTo does not
+- hence, shape Arc cannot be transformed into PathElement ArcTo
+- implemented solution: turning a named Arc into a path and adding its pathElements to named Path
+
+- needs testing if all inputs have correct output
+
+
+Philipp Schaller 
+07-06-2024
+
+
+

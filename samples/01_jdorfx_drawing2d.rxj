@@ -1,0 +1,65 @@
+#!/usr/bin/env rexx
+/*
+   license:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2024 Philipp Schaller
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Create a new scene and draw on canvas"
+-- creating a new window with size 500 x 500
+newimage 500 500
+-- draw filled polygon with nPoints taken from xPoints-array and yPoints-array
+fillpolygon "(10,30,40,50,110,140)" "(0,100,40,50,200,0)" 6
+-- move current x and y points
+moveto 200 50
+-- draw filled arc with width heigth start angle and arc angle
+fillarc 100 200 40 120
+-- move current x and y points
+moveto 400 50
+-- set draw and fill color to red
+color red
+-- draw line from current x and y points to new x and y
+drawline 400 200
+-- move current x and y points
+moveto 50 300
+-- draw filled oval with width and height
+filloval 50 100
+-- set draw and fill color to green
+color green
+-- move current x and y points
+moveto 200 300
+-- draw filled rectangle with width and height
+fillrect 50 100
+-- move current x and y points
+moveto 300 300
+-- draw round rectangle with width heigth arcwidth and archheight
+drawroundrect 100 150 10 10
+-- show created window
+winshow
+say
+say "Sleep for 5 seconds and end program..."
+sleep 5
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

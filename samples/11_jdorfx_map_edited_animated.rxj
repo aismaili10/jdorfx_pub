@@ -1,0 +1,145 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2024 Philipp Schaller, Rony G. Flatscher
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Create a new scene with 3D shapes and edited png maps"
+-- creating a new window with size 500 x 500
+newimage 500 500
+-- create different 3D shapes
+shape3d box1 box 100 100 0 100 100 100
+shape3d box2 box 100 250 0 100 100 100
+shape3d box3 box 100 400 0 100 100 100
+shape3d sphere1 sphere 250 100 0 50
+shape3d sphere2 sphere 250 250 0 50
+shape3d sphere3 sphere 250 400 0 50
+shape3d cylinder1 cylinder 400 100 0 40 100
+shape3d cylinder2 cylinder 400 250 0 40 100
+shape3d cylinder3 cylinder 400 400 0 40 100
+-- add shapes to scene
+fill3dshape box1
+fill3dshape box2
+fill3dshape box3
+fill3dshape sphere1
+fill3dshape sphere2
+fill3dshape sphere3
+fill3dshape cylinder1
+fill3dshape cylinder2
+fill3dshape cylinder3
+-- rotate shapes
+rotate3dshape box1 (-20) 0 0 0 1 1 0
+rotate3dshape box1 60 0 0 0 0 1 0
+rotate3dshape box2 60 0 0 0 0 1 0
+rotate3dshape box3 20 0 0 0 1 1 0
+rotate3dshape box3 (-60) 0 0 0 0 1 0
+rotate3dshape cylinder1 40 0 0 0 0 0 1
+rotate3dshape cylinder2 70 0 0 0 1 0 1
+rotate3dshape cylinder2 30 0 0 0 0 1 0
+rotate3dshape cylinder3 (-40) 0 0 0 0 0 1
+-- create perspective camera and add to scene
+camera camera perspective 0 0 0 50
+setcamera  camera
+-- create new materials for each shape
+material boxMaterial1
+material boxMaterial2
+material boxMaterial3
+material sphereMaterial1
+material sphereMaterial2
+material sphereMaterial3
+material cylinderMaterial1
+material cylinderMaterial2
+material cylinderMaterial3
+-- create new images with name "boxMap1" based on image with image path "oorexx_256.png"
+-- add width=50 and height=50 to image, set rotation angle=0 and set a color="cyan"
+map boxMap1 "oorexx_256.png" 50 50 0 cyan
+map boxMap2 "oorexx4ooo_256.png" 50 50 90 blue
+map boxMap3 "bsf4oorexx_256.png" 50 50 180 green
+map sphereMap1 "oorexx_256.png" 800 200 20 white
+map sphereMap2 "oorexx4ooo_256.png" 800 200 0 yellow
+map sphereMap3 "bsf4oorexx_256.png" 800 200 340 orange
+map cylinderMap1 "oorexx_256.png" 600 200 0 pink
+map cylinderMap2 "oorexx4ooo_256.png" 500 200 270 magenta
+map cylinderMap3 "bsf4oorexx_256.png" 600 200 0 red
+-- set maps as diffuse maps to each material
+materialmap boxMaterial1 diffuse boxMap1
+materialmap boxMaterial2 diffuse boxMap2
+materialmap boxMaterial3 diffuse boxMap3
+materialmap sphereMaterial1 diffuse sphereMap1
+materialmap sphereMaterial2 diffuse sphereMap2
+materialmap sphereMaterial3 diffuse sphereMap3
+materialmap cylinderMaterial1 diffuse cylinderMap1
+materialmap cylinderMaterial2 diffuse cylinderMap2
+materialmap cylinderMaterial3 diffuse cylinderMap3
+--set materials to shapes
+setmaterial box1 boxMaterial1
+setmaterial box2 boxMaterial2
+setmaterial box3 boxMaterial3
+setmaterial sphere1 sphereMaterial1
+setmaterial sphere2 sphereMaterial2
+setmaterial sphere3 sphereMaterial3
+setmaterial cylinder1 cylinderMaterial1
+setmaterial cylinder2 cylinderMaterial2
+setmaterial cylinder3 cylinderMaterial3
+-- show created window
+winshow
+secs=5
+say
+say "sleeping for" secs "seconds, then starting a few animations ..."
+sleep secs
+
+-- 20240503: Bonus für Herrn Schaller! 8-)
+clzDuration=bsf.importClass("javafx.util.Duration")
+duration=clzDuration~seconds(secs)
+
+clzRotationTransition=bsf.importClass("javafx.animation.RotateTransition")
+
+shapes=box1, box2, box3, sphere1, sphere2, sphere3, cylinder1, cylinder2, cylinder3
+startAngle=0      --
+diffAngle=35
+
+getState    -- get all Java collections, we need access to "shapes3d" to access the shape objects directly
+shapes3d=rc~shapes3d    -- get the shapes3d Map
+
+do counter c1 shape over shapes
+   currShape=shapes3d~get(shape)    -- get shape3d from Map
+   rt=clzRotationTransition~new(duration, currShape)  -- create a RotationTransition
+   startAngle+=diffAngle*c1
+   rt~ByAngle    =startAngle -- +diffAngle*c1
+   rt~CycleCount =4
+   rt~AutoReverse=.true
+      -- send PLAY on the FX GUI thread
+   .fxGuiThread~runLater(rt, "play")
+end
+say "press <enter> to end program"
+parse pull .
+say "Done."
+
+
+
+
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

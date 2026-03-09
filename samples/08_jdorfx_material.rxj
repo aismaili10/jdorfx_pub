@@ -1,0 +1,102 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2024 Philipp Schaller
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+     license Texture images:
+
+        ------------------------ CC0 1.0 DEED -------------------------
+                               CC0 1.0 Universal
+           "Texture Images" by https://3dtextures.me/ are licensed under "CC BY 1.0"
+            https://creativecommons.org/publicdomain/zero/1.0/
+        -----------------------------------------------------------------------------
+
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Create a new scene with 3D shapes and materials"
+-- creating a new window with size 500 x 500
+newimage 500 500
+-- create different shapes
+shape3d rockBox box 100 100 0 100 100 100
+shape3d furSphere sphere 250 100 0 50
+shape3d colCylinder cylinder 400 100 0 20 100
+shape3d tileSphere1 sphere 100 350 0 50
+shape3d tileBox box 250 350 0 100 100 100
+shape3d tileSphere2 sphere 400 350 0 50
+-- add shapes to scene
+fill3dshape rockBox
+fill3dshape furSphere
+fill3dshape colCylinder
+fill3dshape tileSphere1
+fill3dshape tileBox
+fill3dshape tileSphere2
+-- create new material named rock
+material rock
+-- add image with pathname "rock_diffuse.jpg" as diffuse map to material rock
+materialmap rock diffuse "rock_diffuse.jpg"
+-- add material rock to rockBox
+setmaterial rockBox rock
+--create new material fur
+material fur
+-- add image with pathname "fur_bump.jpg" as bump map to material fur
+materialmap fur bump "fur_bump.jpg"
+-- add image with pathname "fur_diffuse.jpg" as diffuse map to material rock
+materialmap fur diffuse "fur_diffuse.jpg"
+-- add material fur to furSphere
+setmaterial furSphere fur
+-- create new material colBlue and set color to blue
+material colBlue blue
+-- add material colBlue to colCylinder
+setmaterial colCylinder colBlue
+-- create new material tileDiff and set color to red
+material tileDiff red
+-- add image with pathname "tiles.jpg" as diffuse map to material tileDiff
+materialmap tileDiff diffuse "tiles.jpg"
+-- add material tileDiff to tileBox
+setmaterial tileBox tileDiff
+-- create new material tileSpec and set color to black
+material tileSpec black
+-- set material specularColor to white with specularPower of 10
+materialcolor tileSpec specular white 10
+-- add image with pathname "tiles.jpg" as specular map to material rock
+materialmap tileSpec specular "tiles.jpg"
+-- add material tileSpec to tileSphere1
+setmaterial tileSphere1 tileSpec
+-- create new material tileIll and set color to red
+material tileIll red
+-- add image with pathname "tiles.jpg" as selfillumination map to material tileIll
+materialmap tileIll selfillumination "tiles.jpg"
+-- add material tileIll to tileSphere2
+setmaterial tileSphere2 tileIll
+-- create perspective camera and add to scene
+camera camera perspective 0 0 0
+setcamera  camera
+-- show created window
+winshow
+say
+say "Sleep for 5 seconds and end program..."
+sleep 5
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

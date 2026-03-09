@@ -1,0 +1,85 @@
+#!/usr/bin/env rexx
+/*
+   license:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2024 Philipp Schaller
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Create a scene and add 2D shapes"
+-- creating a new window with size 500 x 500
+newimage 500 500
+-- set draw and fill color to blue
+color blue
+-- set stroke with width=3 cap=2 join=2 miterLimit=10 dashArray=(10,20) dashOffset=4
+stroke myStroke 3 2 2 10 "(10,20)" 4
+stroke myStroke
+-- draw filled polygon with nPoints taken from xPoints-array and yPoints-array
+shape myPoly polygon "(50,150,100)" "(50,50,100)" 3
+fillshape myPoly
+-- draw arc with x y width heigth start extend type
+shape myArc arc 200 50 100 100 0 250 2
+drawshape myArc
+-- set draw and fill color to R=0.5 G=0.3 B=0.6 Alpha=0.9
+color myColor 0.5 0.3 0.6 0.9
+color myColor
+-- draw line from x  y to newX and newY
+shape myLine line 350 50 300 200
+drawshape myLine
+-- draw ellipse with x y width height
+shape myEllipse ellipse 400 50 50 100
+drawshape myEllipse
+-- set draw and fill color to orange
+color orange
+-- draw rectangle with x y width height
+shape rec rectangle2d  50 300 100 100
+drawshape rec
+-- draw filled round rectangle with x y width heigth arcWidth archHeight
+shape myRoundrect roundrect 200 300 50 100 20 20
+fillshape myRoundrect
+-- set draw and fill color to gray
+color gray
+-- draw cubic cruve with x1 y1 ctrlx1 ctrly1 ctrlx2 ctrly2 x2 y2
+shape myCubic cubic 300 300 300 350 400 350 300 400
+drawshape myCubic
+-- draw cubic cruve with x1 y1 ctrlx ctrly x2 y2
+shape myQuadCurve quadcurve 450 450 300 300 400 300
+drawshape myQuadCurve
+-- set draw and fill color to pink
+color pink
+-- create a path and add elements
+shape myPath path 1
+pathmoveto myPath 50 250
+-- add curve to path with ctrlx1 ctrly1 ctrlx2 ctrly2 x y
+pathcurveto myPath 100 150 200 300 200 250
+pathlineto myPath 400 250
+--draw path
+drawshape myPath
+-- show created window
+winshow
+say
+say "Sleep for 5 seconds and end program..."
+sleep 5
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

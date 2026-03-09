@@ -1,0 +1,112 @@
+#!/usr/bin/env rexx
+/*
+   license:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2024 Philipp Schaller
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Create a scene and add and transform 3D shapes"
+-- creating a new window with size 500 x 500
+newimage 500 500
+-- create new boxes
+shape3d box1 box 360 280 0 200 20 200
+shape3d box2 box 140 280 0 200 20 200
+shape3d floor box 250 0 (-100) 500 20 500
+--move box "floor" by x, y, z
+translate3dshape floor 0 420 0
+-- shear boxes with shx shy pivotX pivotY
+shear3dshape box1 1 0 0 0
+shear3dshape box2 (-1) 0 0 0
+-- rotate shape  90 degrees on the z axis with its center as pivot point
+rotate3dshape box1 90 0 0 0 0 0 1
+-- rotate shape -90 degrees on the z axis with its center as pivot point
+rotate3dshape box2 (-90) 0 0 0 0 0 1
+-- create new cylinder
+shape3d mySphere sphere 245 255 0 25
+--scale the y axis of shape, pivot point is center of shape
+scale3dshape mySphere 1 1.5 1 0 0 0
+-- create new cylinder
+shape3d cylinder1 cylinder 225 350 0 2 200
+--rotate shape 45 degrees on the y axis, pivot point is 20px left of shape center
+rotate3dshape cylinder1 45 20 0 0 0 1 0
+--rotate shape 30 degrees on the z axis with its center as pivot point
+rotate3dshape cylinder1 30 0 0 0 0 0 1
+-- create new cylinder and apply rotation
+shape3d cylinder2 cylinder 225 350 0 2 200
+rotate3dshape cylinder2 90 20 0 0 0 1 0
+rotate3dshape cylinder2 30 0 0 0 0 0 1
+-- create new cylinder and apply rotation
+shape3d cylinder3 cylinder 225 350 0 2 200
+rotate3dshape cylinder3 135 20 0 0 0 1 0
+rotate3dshape cylinder3 30 0 0 0 0 0 1
+-- create new cylinder and apply rotation
+shape3d cylinder4 cylinder 225 350 0 2 200
+rotate3dshape cylinder4 180 20 0 0 0 1 0
+rotate3dshape cylinder4 30 0 0 0 0 0 1
+-- create new cylinder and apply rotation
+shape3d cylinder5 cylinder 225 350 0 2 200
+rotate3dshape cylinder5 225 20 0 0 0 1 0
+rotate3dshape cylinder5 30 0 0 0 0 0 1
+-- create new cylinder and apply rotation
+shape3d cylinder6 cylinder 225 350 0 2 200
+rotate3dshape cylinder6 270 20 0 0 0 1 0
+rotate3dshape cylinder6 30 0 0 0 0 0 1
+-- create new cylinder and apply rotation
+shape3d cylinder7 cylinder 225 350 0 2 200
+rotate3dshape cylinder7 315 20 0 0 0 1 0
+rotate3dshape cylinder7 30 0 0 0 0 0 1
+-- create new cylinder and apply rotation
+shape3d cylinder8 cylinder 225 350 0 2 200
+rotate3dshape cylinder8 360 20 0 0 0 1 0
+rotate3dshape cylinder8 30 0 0 0 0 0 1
+-- add shapes to scene
+-- the order of placing shapes onto scene matters
+-- later added shapes will cover previous ones, regardless of its distance to the camera
+fillshape3d floor
+fillshape3d box1
+fillshape3d box2
+fillshape3d cylinder4
+fillshape3d cylinder5
+fillshape3d cylinder6
+fillshape3d cylinder7
+fillshape3d cylinder8
+fillshape3d mySphere
+fillshape3d cylinder1
+fillshape3d cylinder2
+fillshape3d cylinder3
+-- create new perspective camera and point light and add to scene
+camera perspectiveCamera perspective 0 0 (-100)
+setcamera  perspectiveCamera
+light myLight point 100 50 (-400) white
+setlight myLight
+-- show created window
+wintitle "jdorfx_transform3d.rxj"
+winshow
+wintitle "jdorfx_transform3d.rxj"
+say
+say "Sleep for 5 seconds and end program..."
+sleep 5
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

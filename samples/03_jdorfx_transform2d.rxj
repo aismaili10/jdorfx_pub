@@ -1,0 +1,76 @@
+#!/usr/bin/env rexx
+/*
+   license:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2024 Philipp Schaller
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Create a scene and add and transform 2D shapes"
+-- creating a new window with size 500 x 500
+newimage 500 500
+-- transform following shapes and drawing elements with
+-- translateX translateY scaleX scaleY shearX shearY
+transform  50 50 1.1 1.1 0.2 0.2
+-- move current x and y points
+moveto 0 0
+-- draw line from current x and y points to new x and y
+drawline 0 200
+-- rotate following shapes and drawing elements by angle
+rotate (-20)
+-- draw ellipse with x y width height
+shape myEllipse ellipse 25 50 50 100
+drawshape myEllipse
+-- scale following shapes and drawing elements by y=1.5
+scale 1 1.5
+-- draw rectangle with x y width height
+shape myRect rectangle2d  100 50 50 100
+drawshape myRect
+-- shear following shapes and drawing elements by x=0.2 y=0.6
+shear 0.2 0.6
+-- draw arc with x y width height start length type
+shape myArc arc 175 (-50) 100 100 0 120 2
+drawshape myArc
+-- set draw and fill color to red
+color red
+-- create a path myPath and add elements
+shape myPath path 1
+pathmoveto myPath 300 50
+pathlineto myPath 400 50
+pathlineto myPath 400 100
+pathlineto myPath 300 100
+pathclose mypath
+-- create transformation with name myTransform
+transform myTransform (-350) 50 1 1.5 0.5 0
+-- use transformation myTransform on path myPath
+pathtransform myPath myTransform
+--draw path
+fillshape myPath
+-- show created window
+winshow
+say
+say "Sleep for 5 seconds and end program..."
+sleep 5
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

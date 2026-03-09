@@ -1,0 +1,54 @@
+#!/usr/bin/env rexx
+/*
+   license:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2024 Philipp Schaller
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Create a scene and add 3D shapes"
+-- creating a new window with size 500 x 500
+newimage 500 500
+-- create new sphere with the name "mySphere" at location x=100, y=100, z=0
+-- and a radius=50
+shape3d mySphere sphere 100 100 0 50
+-- create new box with the name "myBox" at location x=400, y=175, z=0
+-- and size: width=100, height=250, depth=200
+shape3d myBox box 400 175 0 100 250 200
+-- create new cylinder with the name "myCylinder" at location x=100, y=350, z=0
+-- and size: radius=50, height=150
+shape3d myCylinder cylinder 100 350 0 50 150
+-- place mySphere onto scene with filled vertices; also: fillshape3d
+fill3dshape mySphere
+-- place myBox onto scene as line / wireframe model; also: drawshape3d
+draw3dshape myBox
+-- place myCylinder onto scene with filled vertices; also: fill3dshape
+fillshape3d myCylinder
+-- show created window
+winshow
+say
+say "Sleep for 5 seconds and end program..."
+sleep 5
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"
