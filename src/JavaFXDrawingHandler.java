@@ -5432,7 +5432,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         if (arrCommand.length > 5) {
                             int cycleCount = Integer.parseInt(arrCommand[5]);
-                            System.out.println("[RotationTransition] value of cycleCount: " + cycleCount);
                             rotate.setCycleCount(cycleCount == -1 ? RotateTransition.INDEFINITE : cycleCount);
                         }
                         if (arrCommand.length > 6) {
@@ -5533,10 +5532,99 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             fill.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
                         }
                         if (arrCommand.length > 7) {
-                            fill.setAutoReverse(checkBooleanValue(arrCommand[7]));
+                            fill.setAutoReverse(getBooleanValue(arrCommand[7]));
                         }
                         
                         hmAnimations.put(animName.toUpperCase(), fill);
+                        
+                        if (isOR) {
+                            writeOutput(slot, canonical+" "+animName+" "+shapeName+" "+duration);
+                        }
+                        break;
+                    }
+                case ANIMATION_STROKE:
+                    {
+                        if (arrCommand.length < 4)
+                        {
+                            throw new IllegalArgumentException("this command needs at least 3 arguments (animName, shapeName, duration), received "+(arrCommand.length-1)+" instead");
+                        }
+                        
+                        String animName = arrCommand[1];
+                        String shapeName = arrCommand[2];
+                        double duration = Double.parseDouble(arrCommand[3]);
+                        
+                        // Get the shape
+                        Shape shape = hmFXShapes.get(shapeName.toUpperCase());
+                        if (shape == null) {
+                            throw new IllegalArgumentException("no shape with name \""+shapeName+"\" found");
+                        }
+                        
+                        StrokeTransition stroke = new StrokeTransition(Duration.millis(duration), shape);
+                        
+                        // Optional parameters
+                        if (arrCommand.length > 4) {
+                            String colorNickName = arrCommand[4];
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+colorNickName;
+                            }
+                            Color fxColor=hmFXColors.get(colorNickName.toUpperCase());
+
+                            if (fxColor==null)
+                            {
+                                try // try to get from a Rexx variable
+                                {
+                                    fxColor = (Color) getContextVariable(slot, colorNickName);
+                                }
+                                catch (Throwable t) {}
+                                if (fxColor==null)
+                                {
+                                    String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                    if (isOR)
+                                    {
+                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
+                                    }
+                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
+                                }
+                            }
+                            stroke.setFromValue(fxColor);
+                        }
+                        if (arrCommand.length > 5) {
+                            String colorNickName = arrCommand[5];
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+colorNickName;
+                            }
+                            Color fxColor=hmFXColors.get(colorNickName.toUpperCase());
+
+                            if (fxColor==null)
+                            {
+                                try // try to get from a Rexx variable
+                                {
+                                    fxColor = (Color) getContextVariable(slot, colorNickName);
+                                }
+                                catch (Throwable t) {}
+                                if (fxColor==null)
+                                {
+                                    String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                    if (isOR)
+                                    {
+                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
+                                    }
+                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
+                                }
+                            }
+                            stroke.setToValue(fxColor);
+                        }
+                        if (arrCommand.length > 6) {
+                            int cycleCount = Integer.parseInt(arrCommand[6]);
+                            stroke.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                        }
+                        if (arrCommand.length > 7) {
+                            stroke.setAutoReverse(getBooleanValue(arrCommand[7]));
+                        }
+                        
+                        hmAnimations.put(animName.toUpperCase(), stroke);
                         
                         if (isOR) {
                             writeOutput(slot, canonical+" "+animName+" "+shapeName+" "+duration);
@@ -5580,7 +5668,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             scale.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
                         }
                         if (arrCommand.length > 8) {
-                            scale.setAutoReverse(checkBooleanValue(arrCommand[8]));
+                            scale.setAutoReverse(getBooleanValue(arrCommand[8]));
                         }
                         
                         hmAnimations.put(animName.toUpperCase(), scale);
@@ -5592,9 +5680,220 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     }
                 case ANIMATION_TRANSLATE:
                     {
+                        if (arrCommand.length < 4)
+                        {
+                            throw new IllegalArgumentException("this command needs at least 3 arguments (animName, nodeName, duration), received "+(arrCommand.length-1)+" instead");
+                        }
                         
+                        String animName = arrCommand[1];
+                        String nodeName = arrCommand[2];
+                        double duration = Double.parseDouble(arrCommand[3]);
+                        
+                        // Get the node (shape or shape3D)
+                        Node node = hmFXShapes.get(nodeName.toUpperCase());
+                        if (node == null) {
+                            node = hm3DShapes.get(nodeName.toUpperCase());
+                        }
+                        if (node == null) {
+                            throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
+                        }
+                        
+                        TranslateTransition translate = new TranslateTransition(Duration.millis(duration), node);
+                        
+                        // Optional parameters
+                        if (arrCommand.length > 4) {
+                            translate.setByX(Double.parseDouble(arrCommand[4]));
+                        }
+                        if (arrCommand.length > 5) {
+                            translate.setByY(Double.parseDouble(arrCommand[5]));
+                        }
+                        if (arrCommand.length > 6) {
+                            translate.setByZ(Double.parseDouble(arrCommand[6]));
+                        }
+                        if (arrCommand.length > 7) {
+                            int cycleCount = Integer.parseInt(arrCommand[7]);
+                            translate.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                        }
+                        if (arrCommand.length > 8) {
+                            translate.setAutoReverse(getBooleanValue(arrCommand[8]));
+                        }
+                        
+                        hmAnimations.put(animName.toUpperCase(), translate);
+                        
+                        if (isOR) {
+                            writeOutput(slot, canonical+" "+animName+" "+nodeName+" "+duration);
+                        }
+                        break;
                     }
                 case ANIMATION_PATH:  // Not yet implemented
+                    {
+                        if (arrCommand.length < 5)
+                        {
+                            throw new IllegalArgumentException("this command needs at least 4 arguments (animName, nodeName, duration, pathName), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        String animName = arrCommand[1];
+                        String nodeName = arrCommand[2];
+                        double duration = Double.parseDouble(arrCommand[3]);
+                        String pathName = arrCommand[4];
+                        
+                        // Get the node (shape or shape3D)
+                        Node node = hmFXShapes.get(nodeName.toUpperCase());
+                        if (node == null) {
+                            node = hm3DShapes.get(nodeName.toUpperCase());
+                        }
+                        if (node == null) {
+                            throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
+                        }
+
+                        Shape pathShape = hmFXShapes.get(pathName.toUpperCase());
+                        if (pathShape == null) {
+                            throw new IllegalArgumentException("no Path shape with name \""+pathName+"\" found");
+                        }
+                        
+                        PathTransition pathT = new PathTransition(Duration.millis(duration), pathShape, node);
+                        
+                        // Optional parameters
+                        if (arrCommand.length > 5) {
+                            int cycleCount = Integer.parseInt(arrCommand[5]);
+                            pathT.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                        }
+                        if (arrCommand.length > 6) {
+                            System.out.println("[PathTransition] value of autoReverse argument: " + arrCommand[6]);
+                            System.out.println("[PathTransition] value of autoReverse (boolean): " + checkBooleanValue(arrCommand[6]));
+                            pathT.setAutoReverse(getBooleanValue(arrCommand[6]));
+                        }
+
+                        hmAnimations.put(animName.toUpperCase(), pathT);
+                        
+                        if (isOR) {
+                            writeOutput(slot, canonical+" "+animName+" "+nodeName+" "+duration+" "+pathName);
+                        }
+                        break;
+
+                    }
+                case ANIMATION_SEQUENTIAL:  // Not yet implemented
+                    {
+                        if (arrCommand.length < 3)
+                        {
+                            throw new IllegalArgumentException("this command needs at least 2 arguments (animName, nodeName, anim1, anim2, ...), received "+(arrCommand.length-1)+" instead");
+                        }
+                        
+                        String animName = arrCommand[1];
+                        String nodeName = arrCommand[2];
+                        Node node = hmFXShapes.get(nodeName.toUpperCase());
+                        if (node == null) {
+                            node = hm3DShapes.get(nodeName.toUpperCase());
+                        }
+                        if (node == null) {
+                            throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
+                        }
+
+                        SequentialTransition seqT = new SequentialTransition(node);
+                        
+                        for (int i=3; i<arrCommand.length; i++) {
+                            // check for optional cycleCount and autoReverse parameters at the end of the command
+                            if (i == arrCommand.length - 2) {
+                                try {
+                                    int cycleCount = Integer.parseInt(arrCommand[i]);
+                                    seqT.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                                    continue; // skip to next iteration
+                                } catch (NumberFormatException e) {
+                                    // not an integer, treat as animation name
+                                }
+                            }
+                            else if (i == arrCommand.length - 1) {
+                                try {
+                                    if (!checkBooleanValue(arrCommand[i]))
+                                    {
+                                        throw new IllegalArgumentException("invalid value for autoReverse argument: ["+arrCommand[i]+"], expected true/false");
+                                    }
+                                    boolean autoReverse = getBooleanValue(arrCommand[i]);
+                                    seqT.setAutoReverse(autoReverse);
+                                    continue; // skip to next iteration
+                                } catch (IllegalArgumentException e) {
+                                    // not a boolean, treat as animation name
+                                }
+                            }
+                            String subAnimName = arrCommand[i];
+                            Animation subAnim = hmAnimations.get(subAnimName.toUpperCase());
+                            if (subAnim == null) {
+                                throw new IllegalArgumentException("no animation with name \""+subAnimName+"\" found");
+                            }
+                            seqT.getChildren().add(subAnim);
+                            if (isOR) {
+                                canonical = canonical+" "+subAnimName;
+                            }
+                        }
+                        
+                        hmAnimations.put(animName.toUpperCase(), seqT);
+                        
+                        if (isOR) {
+                            writeOutput(slot, canonical);
+                        }
+                        break;
+                    }
+                case ANIMATION_PARALLEL:  // Not yet implemented
+                    {
+                        if (arrCommand.length < 3)
+                        {
+                            throw new IllegalArgumentException("this command needs at least 2 arguments (animName, nodeName, anim1, anim2, ...), received "+(arrCommand.length-1)+" instead");
+                        }
+                        
+                        String animName = arrCommand[1];
+                        String nodeName = arrCommand[2];
+                        Node node = hmFXShapes.get(nodeName.toUpperCase());
+                        if (node == null) {
+                            node = hm3DShapes.get(nodeName.toUpperCase());
+                        }
+                        if (node == null) {
+                            throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
+                        }
+
+                        ParallelTransition parT = new ParallelTransition(node);
+                        
+                        for (int i=3; i<arrCommand.length; i++) {
+                            // check for optional cycleCount and autoReverse parameters at the end of the command
+                            if (i == arrCommand.length - 2) {
+                                try {
+                                    int cycleCount = Integer.parseInt(arrCommand[i]);
+                                    parT.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                                    continue; // skip to next iteration
+                                } catch (NumberFormatException e) {
+                                    // not an integer, treat as animation name
+                                }
+                            }
+                            else if (i == arrCommand.length - 1) {
+                                try {
+                                    if (!checkBooleanValue(arrCommand[i]))
+                                    {
+                                        throw new IllegalArgumentException("invalid value for autoReverse argument: ["+arrCommand[i]+"], expected true/false");
+                                    }
+                                    boolean autoReverse = getBooleanValue(arrCommand[i]);
+                                    parT.setAutoReverse(autoReverse);
+                                    continue; // skip to next iteration
+                                } catch (IllegalArgumentException e) {
+                                    // not a boolean, treat as animation name
+                                }
+                            }
+                            String subAnimName = arrCommand[i];
+                            Animation subAnim = hmAnimations.get(subAnimName.toUpperCase());
+                            if (subAnim == null) {
+                                throw new IllegalArgumentException("no animation with name \""+subAnimName+"\" found");
+                            }
+                            parT.getChildren().add(subAnim);
+                            if (isOR) {
+                                canonical = canonical+" "+subAnimName;
+                            }
+                        }
+                        
+                        hmAnimations.put(animName.toUpperCase(), parT);
+                        
+                        if (isOR) {
+                            writeOutput(slot, canonical);
+                        }
+                        break;
+                    }
                 case TIMELINE:  // Not yet implemented
                 case KEYFRAME:  // Not yet implemented
                 // Timeline
@@ -6383,9 +6682,12 @@ enum EnumCommand {
     ANIMATION_FADE              ( "animationFade"            ) ,    //   "animationFade animName nodeName duration [fromValue] [toValue] [cycleCount] [autoReverse]"
     ANIMATION_ROTATE            ( "animationRotate"          ) ,    //   "animationRotate animName nodeName duration [byAngle|toAngle] [cycleCount] [autoReverse]"
     ANIMATION_FILL              ("animationFill"             ) ,    //   "animationFill animName nodeName duration [fromValue] [toValue] [cycleCount] [autoReverse]"
+    ANIMATION_STROKE            ("animationStroke"           ) ,    //   "animationStroke animName shapeName duration [fromColor] [toColor] [cycleCount] [autoReverse]"
     ANIMATION_SCALE             ( "animationScale"           ) ,    //   "animationScale animName nodeName duration [byX byY|toX toY] [cycleCount] [autoReverse]"
     ANIMATION_TRANSLATE         ( "animationTranslate"       ) ,    //   "animationTranslate animName nodeName duration [byX byY|toX toY] [cycleCount] [autoReverse]"
     ANIMATION_PATH              ( "animationPath"            ) ,    //   "animationPath animName nodeName duration pathName [cycleCount] [autoReverse]"
+    ANIMATION_SEQUENTIAL        ( "animationSequential"      ) ,    //   "animationSequential animName animName1 animName2 ..." defines a sequential animation
+    ANIMATION_PARALLEL          ( "animationParallel"        ) ,    //   "animationParallel animName animName1 animName2 ..." defines a parallel animation
     ANIMATION_PLAY              ( "animationPlay"            ) ,    //   "animationPlay animName"
     ANIMATION_PAUSE             ( "animationPause"           ) ,    //   "animationPause animName"
     ANIMATION_STOP              ( "animationStop"            ) ,    //   "animationStop animName"
@@ -6448,10 +6750,13 @@ enum EnumCommand {
          upperCase2Command.put( "FADE"              , ANIMATION_FADE      ) ;
          upperCase2Command.put( "FADETRANSITION"    , ANIMATION_FADE      ) ;
          upperCase2Command.put( "ROTATETRANSITION"  , ANIMATION_ROTATE    ) ;
-         upperCase2Command.put( "ROTATETRANSITION"  , ANIMATION_FILL    ) ;
+         upperCase2Command.put( "FILLTRANSITION"    , ANIMATION_FILL      ) ;
+         upperCase2Command.put( "STROKETRANSITION"  , ANIMATION_STROKE    ) ;
          upperCase2Command.put( "SCALETRANSITION"   , ANIMATION_SCALE     ) ;
          upperCase2Command.put( "TRANSLATETRANSITION", ANIMATION_TRANSLATE ) ;
          upperCase2Command.put( "PATHTRANSITION"    , ANIMATION_PATH      ) ;
+         upperCase2Command.put( "SEQUENTIALTRANSITION", ANIMATION_SEQUENTIAL) ;
+            upperCase2Command.put( "PARALLELTRANSITION", ANIMATION_PARALLEL  ) ;
          upperCase2Command.put( "PLAY"              , ANIMATION_PLAY      ) ;
          upperCase2Command.put( "PAUSE"             , ANIMATION_PAUSE     ) ;
          upperCase2Command.put( "STOP"              , ANIMATION_STOP      ) ;

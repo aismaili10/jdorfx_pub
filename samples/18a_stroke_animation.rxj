@@ -1,0 +1,37 @@
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Stroke Animation"
+newimage 500 500
+winTitle "JDORFX Animation - Stroke Animation"
+
+-- create a rectangle
+shape myRect rectangle2d 150 150 200 150
+drawshape myRect
+
+-- define custom colors
+color DARK_GRAY 64 64 64
+color DODGE_BLUE 30 144 255
+
+-- Create stroke animation
+-- Parameters: animName, shapeName, duration, [fromColor], [toColor], [cycleCount], [autoReverse]
+animationStroke strokeAnim myRect 1200 GREEN BLUE "-1" .true
+
+-- play animation
+animationPlay strokeAnim
+
+winShow
+
+say "Rectangle stroke animating from DARK_GRAY to DODGE_BLUE ..."
+say "Press Enter to exit..."
+pull .
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"
