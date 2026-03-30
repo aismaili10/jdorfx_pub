@@ -288,3 +288,8 @@ pathWindingRulle
 
 26-05-2024
 Philipp Schaller
+
+For animation commands, see src/jdorfx_animation_cmds_ref.txt for details.
+
+30-03-2026
+Alireza Ismaili

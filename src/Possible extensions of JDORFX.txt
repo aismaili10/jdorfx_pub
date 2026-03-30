@@ -23,7 +23,7 @@ TriangleMesh / MeshView (subclass of mesh for user defined shapes; probably a bi
 
 Effects (adds effects to Nodes, eg Shadow, Lighting, Glow,...)
 
-Animations
+Animations -> ALMOST FULLY IMPLEMENTED as of March 2026 (see src/jdorfx_animation_cmds_ref.txt for details)
 
 Subscene (eg for two scenes with different perspective camera objects)
 
@@ -40,3 +40,10 @@ EventHandler (for interactivity)
 
 Philipp Schaller 
 07-06-2024
+
+
+Animation Commands have been added to JDORFX as of March 2026, see refence file src/jdorfx_animation_cmds_ref.txt for details.
+Note: Some of the animation commands are not fully implemented yet, but are being worked on.
+
+Alireza Ismaili
+30-03-2026
