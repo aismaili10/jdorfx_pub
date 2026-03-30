@@ -632,6 +632,15 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
         hmMaterial.clear();
         hmMaps.clear();
 
+        hmAnimations.clear();
+        hmTimelines.clear();
+        for (AnimationTimer animTimer : hmAnimationTimers.values()) {
+            if (animTimer != null) {
+                animTimer.stop();
+            }
+        }
+        hmAnimationTimers.clear();
+
         if (fxframe!=null && canvas!=null)
         {
             if (bDebug) System.err.println(" /// ---> resizeSurface(): w="+canvas.getWidth()+", h="+canvas.getHeight());
