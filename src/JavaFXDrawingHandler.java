@@ -5914,6 +5914,34 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         break;
                     }
+                case ANIMATION_PAUSE_TRANSITION:  // "animationPauseTransition pauseName duration [cycleCount] [autoReverse]"
+                    {
+                        if (arrCommand.length < 3)
+                        {
+                            throw new IllegalArgumentException("this command needs at least 2 arguments (pauseName, duration), received "+(arrCommand.length-1)+" instead");
+                        }
+                        
+                        String pauseName = arrCommand[1];
+                        double duration = Double.parseDouble(arrCommand[2]);
+                        
+                        PauseTransition pause = new PauseTransition(Duration.millis(duration));
+                        
+                        // Optional parameters
+                        if (arrCommand.length > 3) {
+                            int cycleCount = Integer.parseInt(arrCommand[3]);
+                            pause.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                        }
+                        if (arrCommand.length > 4) {
+                            pause.setAutoReverse(getBooleanValue(arrCommand[4]));
+                        }
+                        
+                        hmAnimations.put(pauseName.toUpperCase(), pause);
+                        
+                        if (isOR) {
+                            writeOutput(slot, canonical+" "+pauseName+" "+duration);
+                        }
+                        break;
+                    }
                 case TIMELINE:  // Not yet implemented
                 case KEYFRAME:  // Not yet implemented
                 // Timeline
@@ -6708,6 +6736,7 @@ enum EnumCommand {
     ANIMATION_PATH              ( "animationPath"            ) ,    //   "animationPath animName nodeName duration pathName [cycleCount] [autoReverse]"
     ANIMATION_SEQUENTIAL        ( "animationSequential"      ) ,    //   "animationSequential animName animName1 animName2 ..." defines a sequential animation
     ANIMATION_PARALLEL          ( "animationParallel"        ) ,    //   "animationParallel animName animName1 animName2 ..." defines a parallel animation
+    ANIMATION_PAUSE_TRANSITION ( "animationPauseTransition" ) ,    //   "animationPauseTransition animName" pauses the transition of the animation
     ANIMATION_PLAY              ( "animationPlay"            ) ,    //   "animationPlay animName"
     ANIMATION_PAUSE             ( "animationPause"           ) ,    //   "animationPause animName"
     ANIMATION_STOP              ( "animationStop"            ) ,    //   "animationStop animName"
