@@ -5785,22 +5785,25 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     {
                         if (arrCommand.length < 3)
                         {
-                            throw new IllegalArgumentException("this command needs at least 2 arguments (animName, nodeName, anim1, anim2, ...), received "+(arrCommand.length-1)+" instead");
-                        }
-                        
-                        String animName = arrCommand[1];
-                        String nodeName = arrCommand[2];
-                        Node node = hmFXShapes.get(nodeName.toUpperCase());
-                        if (node == null) {
-                            node = hm3DShapes.get(nodeName.toUpperCase());
-                        }
-                        if (node == null) {
-                            throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
+                            throw new IllegalArgumentException("this command needs at least 2 arguments (animName, nodeName|firstAnim, anim1, anim2, ...), received "+(arrCommand.length-1)+" instead");
                         }
 
-                        SequentialTransition seqT = new SequentialTransition(node);
-                        
-                        for (int i=3; i<arrCommand.length; i++) {
+                        String animName = arrCommand[1];
+                        String nodeOrAnim = arrCommand[2];
+
+                        Node node = hmFXShapes.get(nodeOrAnim.toUpperCase());
+                        if (node == null) {
+                            node = hm3DShapes.get(nodeOrAnim.toUpperCase());
+                        }
+
+                        int endIndex = 0;
+                        // If token refers to a node, the child animations start at index 3
+                        // Otherwise token is the first animation and children start at index 2
+                        int startIndex = (node != null) ? 3 : 2;
+                        SequentialTransition seqT = (node != null) ? new SequentialTransition(node) : new SequentialTransition();
+
+                        for (int i = startIndex; i < arrCommand.length; i++) {
+                            endIndex = i;
                             // check for optional cycleCount and autoReverse parameters at the end of the command
                             if (i == arrCommand.length - 2) {
                                 try {
@@ -5810,8 +5813,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                 } catch (NumberFormatException e) {
                                     // not an integer, treat as animation name
                                 }
-                            }
-                            else if (i == arrCommand.length - 1) {
+                            } else if (i == arrCommand.length - 1) {
                                 try {
                                     if (!checkBooleanValue(arrCommand[i]))
                                     {
@@ -5829,14 +5831,18 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             if (subAnim == null) {
                                 throw new IllegalArgumentException("no animation with name \""+subAnimName+"\" found");
                             }
-                            seqT.getChildren().add(subAnim);
+                            try {
+                                seqT.getChildren().add(subAnim);
+                            } catch (IllegalArgumentException e) {
+                                throw e;
+                            }
                             if (isOR) {
                                 canonical = canonical+" "+subAnimName;
                             }
                         }
-                        
+
                         hmAnimations.put(animName.toUpperCase(), seqT);
-                        
+
                         if (isOR) {
                             writeOutput(slot, canonical);
                         }
@@ -5846,22 +5852,23 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     {
                         if (arrCommand.length < 3)
                         {
-                            throw new IllegalArgumentException("this command needs at least 2 arguments (animName, nodeName, anim1, anim2, ...), received "+(arrCommand.length-1)+" instead");
+                            throw new IllegalArgumentException("this command needs at least 2 arguments (animName, nodeName|firstAnim, anim1, anim2, ...), received "+(arrCommand.length-1)+" instead");
                         }
                         
                         String animName = arrCommand[1];
-                        String nodeName = arrCommand[2];
-                        Node node = hmFXShapes.get(nodeName.toUpperCase());
+                        String nodeOrAnim = arrCommand[2];
+
+                        Node node = hmFXShapes.get(nodeOrAnim.toUpperCase());
                         if (node == null) {
-                            node = hm3DShapes.get(nodeName.toUpperCase());
-                        }
-                        if (node == null) {
-                            throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
+                            node = hm3DShapes.get(nodeOrAnim.toUpperCase());
                         }
 
-                        ParallelTransition parT = new ParallelTransition(node);
-                        
-                        for (int i=3; i<arrCommand.length; i++) {
+                        // If token refers to a node, the child animations start at index 3
+                        // Otherwise token is the first animation and children start at index 2
+                        int startIndex = (node != null) ? 3 : 2;
+                        ParallelTransition parT = (node != null) ? new ParallelTransition(node) : new ParallelTransition();
+
+                        for (int i = startIndex; i < arrCommand.length; i++) {
                             // check for optional cycleCount and autoReverse parameters at the end of the command
                             if (i == arrCommand.length - 2) {
                                 try {
@@ -5890,7 +5897,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             if (subAnim == null) {
                                 throw new IllegalArgumentException("no animation with name \""+subAnimName+"\" found");
                             }
-                            parT.getChildren().add(subAnim);
+                            try {
+                                parT.getChildren().add(subAnim);
+                            } catch (IllegalArgumentException e) {
+                                throw e;
+                            }
                             if (isOR) {
                                 canonical = canonical+" "+subAnimName;
                             }
