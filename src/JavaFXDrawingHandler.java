@@ -264,10 +264,11 @@ class JavaFXDrawingFrame extends Scene
 
     /** Constructor.
      * @param canvas to set size and display on scene
+     * @param depthBuffer whether to enable depth buffering (for 3D shapes)
      */
-    public JavaFXDrawingFrame(Canvas can)
+    public JavaFXDrawingFrame(Canvas can, boolean depthBuffer)
     {
-        super(new Group());
+        super(new Group(), can.getWidth(), can.getHeight(), depthBuffer);
         this.setRoot(root);
         currWidth = (int) can.getWidth();
         currHeight = (int) can.getHeight();
@@ -827,7 +828,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (fxframe==null)   // implies creation of JavaDrawingFrame and make it visible
                         {
-                            fxframe = new JavaFXDrawingFrame(canvas);
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
                         }
                         showFrame();
                         setChangeFrameTrue();
@@ -884,7 +885,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (fxframe==null)   // implies creation of JavaDrawingFrame and make it visible
                         {
-                            fxframe = new JavaFXDrawingFrame(canvas);
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
                             showFrame();    // make sure frame is visible
                         }
 
@@ -952,7 +953,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (fxframe==null)   // implies creation of JavaFXDrawingFrame
                         {
-                            fxframe = new JavaFXDrawingFrame(canvas);
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
                             if (cmd!=EnumCommand.WIN_ALWAYS_ON_TOP_SUPPORTED)
                             {
                                 currVisible=true;
@@ -1034,7 +1035,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (fxframe==null)   // implies creation of JavaDrawingFrame and make it visible
                         {
-                            fxframe = new JavaFXDrawingFrame(canvas);
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
                             showFrame();    // make sure frame is visible
                         }
                         resultValue = frameTitle;    // query current value (to be returned if change occurs)
@@ -1064,7 +1065,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     {
                         if (fxframe==null)   // implies creation of JavaDrawingFrame and make it visible
                         {
-                            fxframe = new JavaFXDrawingFrame(canvas);
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
                             hideFrame();    // frame not visible
                         }
 
@@ -1175,7 +1176,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (fxframe==null)
                         {
-                            fxframe = new JavaFXDrawingFrame(canvas);
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
                             if (newBooleanValue)
                             {
                                 setFxFrameResizable();    // make frame resizable
@@ -1246,7 +1247,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (fxframe==null)
                         {
-                            fxframe = new JavaFXDrawingFrame(canvas);
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
                             if (newBooleanValue)
                             {
                                 showFrame();    // make frame is visible
@@ -1322,7 +1323,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (fxframe==null)   // implies creation of JavaFXDrawingFrame and make it visible
                         {
-                            fxframe = new JavaFXDrawingFrame(canvas);
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
                             showFrame();
                         }
 
@@ -1453,11 +1454,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         return strResult;       // current/old settings
                     }
 
-                case NEW_IMAGE:       // "new[Image] [width height [type]]" creates a new Canvas
+                case NEW_IMAGE:       // "new[Image] [width height [depthBuffer]]" creates a new Canvas
                     {
-                        if (arrCommand.length!=1 && arrCommand.length!=3)
+                        if (arrCommand.length!=1 && arrCommand.length!=3 && arrCommand.length!=4)
                         {
-                            throw new IllegalArgumentException("this command needs no or 2 (width height) arguments, received "+(arrCommand.length-1)+" instead");
+                            throw new IllegalArgumentException("this command needs no or 2 (width height) or 3 (width height depthBuffer) arguments, received "+(arrCommand.length-1)+" instead");
                         }
                         int width      = prefWidth;
                         int height     = prefHeight;
@@ -1491,8 +1492,18 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         canvas = new Canvas(width, height);     // create new canvas
                         canGC = (GraphicsContext) canvas.getGraphicsContext2D();    // get Graphics context
-
-                        fxframe = new JavaFXDrawingFrame(canvas);
+                        if (arrCommand.length == 4)
+                        {
+                            fxframe = new JavaFXDrawingFrame(canvas, getBooleanValue(arrCommand[3]));
+                            if (isOR)
+                            {
+                                canonical = canonical + " " + arrCommand[3];
+                            }
+                        }
+                        else
+                        {
+                            fxframe = new JavaFXDrawingFrame(canvas, false);
+                        }
 
                     }
                     break;
@@ -5768,8 +5779,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             pathT.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
                         }
                         if (arrCommand.length > 6) {
-                            System.out.println("[PathTransition] value of autoReverse argument: " + arrCommand[6]);
-                            System.out.println("[PathTransition] value of autoReverse (boolean): " + checkBooleanValue(arrCommand[6]));
                             pathT.setAutoReverse(getBooleanValue(arrCommand[6]));
                         }
 
