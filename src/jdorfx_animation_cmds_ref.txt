@@ -90,7 +90,8 @@ strokeTransition
 animationSequential
 sequentialTransition
 	String animName		-- Creates sequential transition animation with animName
-	String nodeName		-- Name of shape or 3D shape to animate
+	[String nodeName]		-- Name of shape or 3D shape to animate
+							-- not required if anim* already specify nodeName
 	String anim1  		-- Name of first animation to play
 	String anim2  		-- Name of second animation to play after first finishes
 	[String anim3]		-- Optional name of third animation to play after second finishes
@@ -101,10 +102,18 @@ sequentialTransition
 animationParallel
 parallelTransition
 	String animName		-- Creates parallel transition animation with animName
-	String nodeName		-- Name of shape or 3D shape to animate
+	[String nodeName]		-- Name of shape or 3D shape to animate
+							-- not required if anim* already specify nodeName
 	String anim1  		-- Name of first animation to play
 	String anim2  		-- Name of second animation to play simultaneously with first
 	[String anim3]		-- Optional name of third animation to play simultaneously
+	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
+	[Boolean autoReverse]	-- .true or .false (default=.false)
+
+animationPauseTransition
+pauseTransition
+	String animName		-- Creates pause transition animation with animName
+	Double duration		-- Duration in milliseconds
 	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
 	[Boolean autoReverse]	-- .true or .false (default=.false)
 
