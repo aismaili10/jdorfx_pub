@@ -5413,7 +5413,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     }
 
                 // Tranisition Family: FillTransition, ParallelTransition, SequentialTransition, StrokeTranition
-                case ANIMATION_ROTATE:  // Not yet implemented
+                case ANIMATION_ROTATE:
                     {
                         if (arrCommand.length < 4)
                         {
@@ -5640,7 +5640,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         break;
                     }
-                case ANIMATION_SCALE:  // Not yet implemented
+                case ANIMATION_SCALE:
                     {
                         if (arrCommand.length < 4)
                         {
@@ -5734,7 +5734,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         break;
                     }
-                case ANIMATION_PATH:  // Not yet implemented
+                case ANIMATION_PATH:
                     {
                         if (arrCommand.length < 5)
                         {
@@ -5781,7 +5781,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         break;
 
                     }
-                case ANIMATION_SEQUENTIAL:  // Not yet implemented
+                case ANIMATION_SEQUENTIAL:
                     {
                         if (arrCommand.length < 3)
                         {
@@ -5842,7 +5842,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         break;
                     }
-                case ANIMATION_PARALLEL:  // Not yet implemented
+                case ANIMATION_PARALLEL:
                     {
                         if (arrCommand.length < 3)
                         {
