@@ -1,0 +1,69 @@
+#!/usr/bin/env rexx
+/* ========================================================================
+   JDORFX Animation Example: Fill Transition on 3x3 Rectangle Grid
+   ======================================================================== */
+
+call addJdorFXHandler
+address jdorfx
+
+say "Example: Fill Transition on Rectangle Grid"
+
+newImage 600 600
+winTitle "JDORFX Animation - Grid Fill"
+
+-- Build a 3x3 grid of 200x200 rectangles so the full 600x600 window is used.
+-- Each row has a distinct color family, and each rectangle animates to a new color.
+gridSize = 3
+cellSize = 200
+
+baseColor = "BLACK"
+targetColor = "WHITE"
+
+index = 0
+do row = 1 to gridSize -- row iteration
+    do col = 1 to gridSize -- column iteration
+        index = index + 1
+        -- define rectangle position
+        x = (col - 1) * cellSize
+        y = (row - 1) * cellSize
+
+        rectName = "rect" || row || col
+        animName = "fill" || row || col
+
+        color baseColor
+        shape rectName RECT x y cellSize cellSize
+        fillShape rectName
+
+        moveto x y
+        drawroundrect cellSize cellSize 1 1
+
+        animationFill animName rectName (500 + (index * 500)) baseColor targetColor 1 .false
+        say "Created animation" animName "for" rectName "from" baseColor "to" targetColor
+        say "Position:" x y
+    end
+end
+
+winshow
+
+-- Play the animations after all shapes are created.
+do repeat = 1 to 4
+    say "Playing animation cycle" repeat
+    do row = 1 to gridSize
+        do col = 1 to gridSize
+            animName = "fill" || row || col
+            animationPlay animName
+        end
+    end
+    sleep 5.5
+end
+
+say "Rectangle fill transition ..."
+say "Press Enter to exit..."
+pull .
+
+winClose
+say "Animation completed!"
+
+exit 0
+
+::requires "jdorfx.cls"

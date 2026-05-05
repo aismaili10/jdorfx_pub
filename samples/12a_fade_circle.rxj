@@ -10,20 +10,21 @@ call addJdorFXHandler
 address jdorfx
 
 say "Example 1: Fading Circle"
-winShow
-winSize 600 600
+newImage 600 600
 winTitle "JDORFX Animation - Fading Circle"
 
 -- Create a circle
 color red
-shape circle ELLI 150 150 250 250
+shape circle ELLI 175 175 250 250
 fillShape circle
 
 -- Create fade animation (fade in and out indefinitely)
--- Parameters: animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
+-- Parameters:
+--   animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
 animationFade fadeAnim circle 2000 0.1 1.0 10 .true
 animationPlay fadeAnim
 
+winShow
 say "Circle fading in and out..."
 say "Press Enter to stop and exit..."
 pull .

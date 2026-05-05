@@ -9,27 +9,25 @@ call addJdorFXHandler
 -- set default environment to JDORFX
 address jdorfx
 
-say "Example: Rotating Rectangle"
-winShow
-winSize 600 600
+say "Example: Fill Transition on Rectangle"
+
+newImage 600 600
 winTitle "JDORFX Animation - Rectangle Fill"
 
 -- Create a rectangle
-color blue
-shape rect RECT 200 200 200 150
-fillShape rect
-
--- Create rotation animation
--- Parameters: animName, nodeName, duration, byValue, cycleCount, autoReverse
--- animationRotate rotateAnim rect 3000 360 "-1" .true
+color red
+shape redRect RECT 200 200 200 150
+fillShape redRect
 
 -- Create fill animation
--- Parameters: animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
-animationFill fillAnim rect 500 red blue "-1" .false
+-- Parameters: animName, nodeName, duration, fromValue, toValue,
+--               cycleCount, autoReverse
+animationFill fillAnim redRect 3000 red blue "-1" .true
 
 -- Play created animations
--- animationPlay rotateAnim
 animationPlay fillAnim
+
+winShow
 
 say "Rectangle fill transition ..."
 say "Press Enter to exit..."

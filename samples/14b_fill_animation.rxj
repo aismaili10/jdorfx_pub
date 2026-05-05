@@ -1,0 +1,80 @@
+#!/usr/bin/env rexx
+/* ========================================================================
+   JDORFX Animation Example: Fill Transition on 3x3 Rectangle Grid
+   ======================================================================== */
+
+call addJdorFXHandler
+address jdorfx
+
+say "Example: Fill Transition on Rectangle Grid"
+
+newImage 600 600
+winTitle "JDORFX Animation - Grid Fill"
+
+-- Build a 3x3 grid of 200x200 rectangles so the full 600x600 window is used.
+-- Each row has a distinct color family, and each rectangle animates to a new color.
+gridSize = 3
+cellSize = 200
+
+baseColor.1 = "BLACK"
+baseColor.2 = "BLUE"
+baseColor.3 = "CYAN"
+baseColor.4 = "DARK_GRAY"
+baseColor.5 = "GRAY"
+baseColor.6 = "GREEN"
+baseColor.7 = "LIGHT_GRAY"
+baseColor.8 = "MAGENTA"
+baseColor.9 = "ORANGE"
+
+targetColor.1 = "PINK"
+targetColor.2 = "RED"
+targetColor.3 = "WHITE"
+targetColor.4 = "YELLOW"
+targetColor.5 = "CYAN"
+targetColor.6 = "MAGENTA"
+targetColor.7 = "GREEN"
+targetColor.8 = "BLUE"
+targetColor.9 = "GREEN"
+
+index = 0
+
+do row = 1 to gridSize -- row iteration
+    do col = 1 to gridSize -- column iteration
+        index = index + 1
+        -- define rectangle position
+        x = (col - 1) * cellSize
+        y = (row - 1) * cellSize
+
+        rectName = "rect" || row || col
+        animName = "fill" || row || col
+
+        color baseColor.index
+        shape rectName RECT x y cellSize cellSize
+        fillShape rectName
+
+        animationFill animName rectName 2500 baseColor.index targetColor.index "-1" .true
+        say "Created animation" animName "for" rectName "from" baseColor.index "to" targetColor.index
+        say "Position:" x y
+    end
+end
+
+-- Play the animations after all shapes are created.
+do row = 1 to gridSize
+    do col = 1 to gridSize
+        animName = "fill" || row || col
+        animationPlay animName
+    end
+end
+
+winshow
+
+say "Rectangle fill transition ..."
+say "Press Enter to exit..."
+pull .
+
+winClose
+say "Animation completed!"
+
+exit 0
+
+::requires "jdorfx.cls"

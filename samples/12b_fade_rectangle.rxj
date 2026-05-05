@@ -1,6 +1,6 @@
 #!/usr/bin/env rexx
 /* ========================================================================
-   JDORFX Animation Example: Fading Rectangle
+   JDORFX Animation Example: Fully Fading Rectangle
    ======================================================================== */
 
 -- create JDORFX handler
@@ -10,8 +10,7 @@ call addJdorFXHandler
 address jdorfx
 
 say "Example 2: Fading Rectangle (Fade Out)"
-winShow
-winSize 600 600
+newImage 600 600
 winTitle "JDORFX Animation - Fading Rectangle"
 
 -- Create a rectangle
@@ -20,9 +19,12 @@ shape rect RECT 200 200 200 150
 fillShape rect
 
 -- Create fade out animation (single run)
--- Parameters: animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
-animationFade fadeOutAnim rect 3000 1.0 0.0 1 .false
+-- Parameters:
+--   animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
+animationFade fadeOutAnim rect 5000 1.0 0.0 1 .false
 animationPlay fadeOutAnim
+
+winshow
 
 say "Rectangle fading out once..."
 say "Press Enter to exit..."

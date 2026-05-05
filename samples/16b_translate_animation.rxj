@@ -1,0 +1,88 @@
+#!/usr/bin/env rexx
+/* ========================================================================
+   JDORFX Animation Example: Translation on 3D Shapes
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Translating 3D Shapes"
+
+newimage 700 700 .true
+winTitle "JDORFX Animation - 3D Translation"
+background black
+
+-- create 3D shape (Box)
+shape3d rockBox box 150 100 0 100 100 100
+fill3dShape rockBox
+
+-- create sphere shape
+shape3d earth sphere 250 100 400 150
+fill3dShape earth
+
+-- create sphere shape
+shape3d moon sphere 250 100 (-200) 10
+fill3dShape moon
+
+-- create sphere shape
+shape3d sun sphere 250 100 (-400) 50
+fill3dShape sun
+
+-- create new material named rock
+material rock
+-- add image with pathname "rock_diffuse.jpg" as diffuse map to material rock
+materialmap rock diffuse "rock_diffuse.jpg"
+-- add material rock to rockBox
+setmaterial rockBox rock
+
+material earthMat
+materialmap earthMat diffuse "8081_earthmap4k.jpg"
+setmaterial earth earthMat
+
+material moonMat
+materialmap moonMat diffuse "moonmap4k.jpg"
+setmaterial moon moonMat
+
+material sunMat
+materialmap sunMat diffuse "sunmap.jpg"
+setmaterial sun sunMat
+
+light sunLight point 550 400 (-400) white
+setLight sunLight
+
+-- Create translation animation
+-- Parameters: animName, nodeName, duration, byX, byY, byZ, cycleCount, autoReverse
+animationTranslate translateAnim rockBox 3000 0 400 0 "-1" .true
+animationTranslate translateAnim2 earth 3000 0 400 0 "-1" .true
+animationTranslate translateAnim3 moon 3000 0 400 0 "-1" .true
+animationTranslate translateAnim4 sun 3000 0 0 "1000" "-1" .true
+
+animationRotate translateAnim5 earth 9000 360 "-1" .false 1 1 1
+
+-- play animation
+animationPlay translateAnim
+animationPlay translateAnim2
+animationPlay translateAnim3
+animationPlay translateAnim4
+animationPlay translateAnim5
+
+
+-- create perspective camera and add to scene
+camera camera perspective 0 0 0
+setcamera camera
+
+winShow
+
+say "3D Shapes translating ..."
+say "Press Enter to exit..."
+pull .
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

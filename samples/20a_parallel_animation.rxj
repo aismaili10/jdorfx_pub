@@ -1,5 +1,4 @@
-
-
+#!/usr/bin/env rexx
 
 -- create JDORFX handler
 -- load and add the Java Rexx command handler, using default name: JDORFX
@@ -8,13 +7,32 @@ call addJdorFXHandler
 address jdorfx
 
 say "Example: Parallel Animation"
-newimage 500 500
+newimage 500 500 .true
 winTitle "JDORFX Animation - Parallel Animation"
 
+background gray
+
+-- create floor
+--shape3d floor box 250 450 0 500 100 10
+--fill3dshape floor
+
+--rotate3dshape floor (-50) 0 0 0 1 0 0
+--material floorMat
+--materialmap floorMat diffuse "tiles.jpg"
+--setmaterial floor floorMat
+
 -- create 3D shape (Box)
-shape3d rockBox box 250 250 0 30 30 30
+shape3d rockBox box 250 250 300 40 40 40
 fill3dShape rockBox
 
+-- create 3D shape (Sphere)
+color red
+shape3d mySphere sphere 100 250 300 30
+fill3dShape mySphere
+
+-- create 3D shape (Cylinder)
+shape3d myCylinder cylinder 400 250 300 30 50
+fill3dShape myCylinder
 
 -- create new material named rock
 material rock
@@ -23,17 +41,33 @@ materialmap rock diffuse "rock_diffuse.jpg"
 -- add material rock to rockBox
 setmaterial rockBox rock
 
+material rexxMat
+-- create new images with name "boxMap1" based on image with image path "oorexx_256.png"
+-- add width=30 and height=30 to image, set rotation angle=0 and set a color="cyan"
+map rexxMap "oorexx_256.png" 30 30 0 cyan
+materialmap rexxMat diffuse rexxMap
+setmaterial mySphere rexxMat
+
+material bsfMat
+map bsfMap "bsf4oorexx_256.png" 30 30 0 magenta
+materialmap bsfMat diffuse bsfMap
+setmaterial myCylinder bsfMat
+
 -- Create rotation animation
 -- Parameters: animName, nodeName, duration, byAngle, [cycleCount, autoReverse, pivotX, pivotY, pivotZ]
-animationRotate rotateAnim rockBox 3000 360 "2" .true 1 1 1
+animationRotate rotateAnim rockBox 3000 360 "1" .false 1 0 0
+animationRotate rotateAnim2 mySphere 3000 360 "1" .false 1 0 0
+animationRotate rotateAnim3 myCylinder 3000 360 "1" .false 1 0 0
 
 -- Create translation animation
 -- Parameters: animName, nodeName, duration, byX, byY, byZ, [cycleCount, autoReverse]
-animationTranslate translateAnim rockBox 3000 0 100 0 "3" .true
+animationTranslate translateAnim rockBox 3000 0 0 "-700" "1" .false
+animationTranslate translateAnim2 mySphere 3000 0 0 "-700" "1" .false
+animationTranslate translateAnim3 myCylinder 3000 0 0 "-700" "1" .false
 
 -- Create parallel animation
 -- Parameters: animName, nodeName, [anim1, anim2, ...] [cycleCount, autoReverse]
-animationParallel parAnim rockBox rotateAnim translateAnim "-1" .true
+animationParallel parAnim rotateAnim rotateAnim2 rotateAnim3 translateAnim translateAnim2 translateAnim3 "-1" .true
 
 -- play animation
 animationPlay parAnim
@@ -47,7 +81,6 @@ winShow
 say "Box translating ..."
 say "Press Enter to exit..."
 pull .
-
 
 say "Animation completed!"
 

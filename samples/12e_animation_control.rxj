@@ -10,8 +10,7 @@ call addJdorFXHandler
 address jdorfx
 
 say "Example 5: Animation Control (Play, Pause, Stop)"
-winShow
-winSize 600 600
+newImage 600 600
 winTitle "JDORFX Animation - Animation Control"
 
 -- Create a shape
@@ -22,6 +21,8 @@ fillShape controlShape
 -- Create fade animation
 animationFade controlAnim controlShape 2000 0.2 1.0 10 .true
 animationPlay controlAnim
+
+winShow
 
 say "Animation playing..."
 say "Press Enter to PAUSE the animation..."

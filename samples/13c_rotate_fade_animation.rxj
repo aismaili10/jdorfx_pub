@@ -20,11 +20,13 @@ fillShape rect
 
 -- Create rotation animation
 -- Parameters: animName, nodeName, duration, byValue, cycleCount, autoReverse
-animationRotate rotateAnim rect 3000 360 "-1" .true
+animationRotate rotateAnim rect 500 360 "-1" .true
 
 -- Create fade animation
--- Parameters: animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
-animationFade fadeAnim rect 500 1 0.3 "-1" .false
+-- Parameters: 
+--   animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
+animationFade fadeAnim rect 500 1 0.3 "-1" .true
+
 
 -- Play created animations
 animationPlay rotateAnim
@@ -33,6 +35,15 @@ animationPlay fadeAnim
 winShow
 
 say "Rectangle rotating ..."
+
+--do i = 1 to 4
+--   animationStop rotateAnim
+--   sleep 1
+--   animationRotate rotateAnim rect (3000 / (i + 1)) 360 "-1" .false
+--   animationPlay rotateAnim
+--   sleep (3 / (i + 1)) * 1.5
+--end
+
 say "Press Enter to exit..."
 pull .
 
