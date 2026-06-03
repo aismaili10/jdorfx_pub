@@ -422,7 +422,8 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
 
     Group root = new Group();
 
-    Scene scene = null;
+    // Scene scene = null; // not used
+    Stage fxStage = null;
 
     // default camera with position 0 0 0
     Camera defCamera = new ParallelCamera();
@@ -536,6 +537,173 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
         fxVisible = false;
     }
 
+    private Stage rebuildStage(Stage oldStage, Scene scene)
+    {
+        logSceneState("rebuildStage(before)", scene);
+        refreshVisualState(scene);
+        Stage newStage = new Stage();
+        newStage.initStyle(stageDecorated ? StageStyle.DECORATED : StageStyle.UNDECORATED);
+        newStage.setOnCloseRequest(event -> {
+            Platform.exit();
+        });
+        newStage.setScene(scene);
+        newStage.setTitle(frameTitle);
+        newStage.sizeToScene();
+        oldStage.hide();
+        logSceneState("rebuildStage(after)", scene);
+        return newStage;
+    }
+
+    private void refreshVisualState(Scene scene)
+    {
+        if (!(scene instanceof JavaFXDrawingFrame))
+        {
+            return;
+        }
+
+        JavaFXDrawingFrame drawingFrame = (JavaFXDrawingFrame) scene;
+
+        Camera currentCamera = scene.getCamera();
+        if (currentCamera != null)
+        {
+            scene.setCamera(null);
+            scene.setCamera(currentCamera);
+        }
+
+        java.util.List<Node> currentLights = new java.util.ArrayList<>(drawingFrame.lightGroup.getChildren());
+        drawingFrame.lightGroup.getChildren().clear();
+        for (Node lightNode : currentLights)
+        {
+            drawingFrame.lightGroup.getChildren().add(lightNode);
+        }
+    }
+
+    private void logSceneState(String context, Scene scene)
+    {
+        if (!bDebug)
+        {
+            return;
+        }
+
+        StringBuilder message = new StringBuilder();
+        message.append("[JavaFXDrawingHandler] ").append(context);
+        message.append(" handler=@").append(Integer.toHexString(System.identityHashCode(this)));
+        message.append(" thread=").append(Thread.currentThread().getName());
+        message.append(" | scene=");
+        if (scene == null)
+        {
+            message.append("null");
+        }
+        else
+        {
+            message.append(scene.getClass().getSimpleName())
+                   .append("@").append(Integer.toHexString(System.identityHashCode(scene)));
+            message.append(" camera=");
+            Camera camera = scene.getCamera();
+            if (camera == null)
+            {
+                message.append("null");
+            }
+            else
+            {
+                message.append(camera.getClass().getSimpleName())
+                       .append("@").append(Integer.toHexString(System.identityHashCode(camera)));
+            }
+
+            if (scene instanceof JavaFXDrawingFrame)
+            {
+                JavaFXDrawingFrame drawingFrame = (JavaFXDrawingFrame) scene;
+                message.append(" lightGroupChildren=").append(drawingFrame.lightGroup.getChildren().size());
+                message.append(" rootChildren=").append(drawingFrame.root.getChildren().size());
+            }
+        }
+
+        message.append(" | hmCamera=").append(hmCamera.size());
+        message.append(" hmLightBase=").append(hmLightBase.size());
+        message.append(" fxframe=");
+        if (fxframe == null)
+        {
+            message.append("null");
+        }
+        else
+        {
+            message.append(fxframe.getClass().getSimpleName())
+                   .append("@").append(Integer.toHexString(System.identityHashCode(fxframe)));
+        }
+        message.append(" fxStage=");
+        if (fxStage == null)
+        {
+            message.append("null");
+        }
+        else
+        {
+            message.append(fxStage.getClass().getSimpleName())
+                   .append("@").append(Integer.toHexString(System.identityHashCode(fxStage)))
+                   .append(" showing=").append(fxStage.isShowing());
+        }
+
+        System.err.println(message.toString());
+    }
+
+    private void logVisualDetails(Scene scene)
+    {
+        if (!bDebug || scene==null) return;
+        StringBuilder sb = new StringBuilder();
+        sb.append("[JavaFXDrawingHandler] visualDetails | scene=");
+        sb.append(scene.getClass().getSimpleName()).append("@").append(Integer.toHexString(System.identityHashCode(scene)));
+        sb.append(" width=").append(scene.getWidth()).append(" height=").append(scene.getHeight());
+        Camera cam = scene.getCamera();
+        if (cam!=null) {
+            sb.append(" camera=").append(cam.getClass().getSimpleName())
+              .append("@").append(Integer.toHexString(System.identityHashCode(cam)));
+            sb.append(" translate=(").append(cam.getTranslateX()).append(",").append(cam.getTranslateY()).append(",").append(cam.getTranslateZ()).append(")");
+            sb.append(" nearClip=").append(cam.getNearClip()).append(" farClip=").append(cam.getFarClip());
+        } else {
+            sb.append(" camera=null");
+        }
+        if (scene instanceof JavaFXDrawingFrame) {
+            JavaFXDrawingFrame df = (JavaFXDrawingFrame) scene;
+            sb.append(" lightCount=").append(df.lightGroup.getChildren().size());
+            for (int i=0;i<df.lightGroup.getChildren().size();i++) {
+                Node n = df.lightGroup.getChildren().get(i);
+                sb.append(" [light#").append(i).append(":class=").append(n.getClass().getSimpleName())
+                  .append(" trans=(").append(n.getTranslateX()).append(",").append(n.getTranslateY()).append(",").append(n.getTranslateZ()).append(")]");
+            }
+        }
+        System.err.println(sb.toString());
+    }
+
+    private void runOnFxThreadAndWait(Runnable action)
+    {
+        if (Platform.isFxApplicationThread())
+        {
+            action.run();
+            return;
+        }
+
+        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        Platform.runLater(() -> {
+            try
+            {
+                action.run();
+            }
+            finally
+            {
+                latch.countDown();
+            }
+        });
+
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for JavaFX update", e);
+        }
+    }
+
 
     /* current values      */
     int currX = 0;
@@ -630,6 +798,7 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
         hmPathTransforms.clear();
 
         hm3DShapes.clear();
+        logSceneState("reset(before-clear)", fxframe);
         hmCamera.clear();
         hmLightBase.clear();
         hmMaterial.clear();
@@ -637,12 +806,8 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
 
         hmAnimations.clear();
         hmTimelines.clear();
-        for (AnimationTimer animTimer : hmAnimationTimers.values()) {
-            if (animTimer != null) {
-                animTimer.stop();
-            }
-        }
-        hmAnimationTimers.clear();
+        hmKeyValues.clear();
+        logSceneState("reset(after-clear)", fxframe);
 
         if (fxframe!=null && canvas!=null)
         {
@@ -3890,7 +4055,10 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     // set back to default parallel camera
                     if (arrCommand.length==1)
                     {
-                        fxframe.setCamera(defCamera);
+                        logSceneState("setCamera(default,before)", fxframe);
+                        final Camera _defCam = defCamera;
+                        runOnFxThreadAndWait(() -> fxframe.setCamera(_defCam));
+                        logSceneState("setCamera(default,after)", fxframe);
                         break;
                     }
 
@@ -3910,7 +4078,10 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                     }
 
-                    fxframe.setCamera(camera);
+                    logSceneState("setCamera(named,before)", fxframe);
+                    final Camera _cameraToSet = camera;
+                    runOnFxThreadAndWait(() -> fxframe.setCamera(_cameraToSet));
+                    logSceneState("setCamera(named,after)", fxframe);
 
                     if (isOR)
                     {
@@ -4051,7 +4222,10 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     // turn light off and add to scene
                     lightBase.setLightOn(false);
                     hmLightBase.put(ucLightName,lightBase);
-                    fxframe.lightGroup.getChildren().add(lightBase);
+                    logSceneState("light(add,before)", fxframe);
+                    final LightBase _lightToAdd = lightBase;
+                    runOnFxThreadAndWait(() -> fxframe.lightGroup.getChildren().add(_lightToAdd));
+                    logSceneState("light(add,after)", fxframe);
 
                     return lightBase;      // return the lightbase
                 }
@@ -4092,12 +4266,13 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String ucTurnedOn=turnedOn.toUpperCase();
                     }
 
+                    final LightBase _targetLight = lightBase;
                     if (turnedOn.equals("TURNOFF")) {
-                        lightBase.setLightOn(false);
+                        runOnFxThreadAndWait(() -> _targetLight.setLightOn(false));
                     }
                     else if (turnedOn.equals("TURNON"))
                     {
-                        lightBase.setLightOn(true);
+                        runOnFxThreadAndWait(() -> _targetLight.setLightOn(true));
                     }
                     else
                     {
@@ -6168,6 +6343,8 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
     @Override
     public void start(Stage stage) throws Exception {
 
+        fxStage = stage;
+
         // prevents closing of Thread when stage is hidden
         Platform.setImplicitExit(false);
 
@@ -6183,12 +6360,30 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     @Override
                     public void run() {
 
+                        Stage stage = fxStage;
+                        if (stage == null)
+                        {
+                            return;
+                        }
+
                         // check if a new scene is available and an update should be executed
                         if (!deque.isEmpty() && changeScene && fxWinUpdate) {
 
                             // set first element of deque to stage
                             Scene scene = deque.getFirst();
-                            stage.setScene(scene);
+                            logSceneState("updater(before-stage-swap)", scene);
+
+                            if (changeFrame && changeDecoration && stage.isShowing()) {
+                                stage = rebuildStage(stage, scene);
+                                fxStage = stage;
+                                setchangeDecorationFalse();
+                            }
+
+                            if (stage.getScene() != scene) {
+                                logSceneState("updater(setScene,before)", scene);
+                                stage.setScene(scene);
+                                logSceneState("updater(setScene,after)", scene);
+                            }
                             stage.setTitle(frameTitle);
                             stage.sizeToScene();            // in case of resize
 
@@ -6198,15 +6393,24 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                     // change stage decoration
                                     if (changeDecoration) {
                                         if (stageDecorated) {
-                                            stage.initStyle(StageStyle.DECORATED);
+                                            if (!stage.isShowing()) {
+                                                stage.initStyle(StageStyle.DECORATED);
+                                            }
                                         } else {
-                                            stage.initStyle(StageStyle.UNDECORATED);
+                                            if (!stage.isShowing()) {
+                                                stage.initStyle(StageStyle.UNDECORATED);
+                                            }
                                         }
+                                        setchangeDecorationFalse();
                                     }
                                     // signal that frame has been changed
                                     setChangeFrameFalse();
 
                                 } catch (Exception e) {
+                                    // reset change signals to prevent repeated exceptions
+                                    setChangeFrameFalse();
+                                    setChangeSceneFalse();
+                                    setchangeDecorationFalse();
                                     throw new IllegalArgumentException("WinFrame "
                                             + "cannot be changed once the window "
                                             + " has been set to visible");
@@ -6248,8 +6452,12 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                 // check if frame should be visible
                                 if (fxVisible) {
                                     stage.show();
+                                    logSceneState("after-show", stage.getScene());
+                                    logVisualDetails(stage.getScene());
                                 } else {
                                     stage.hide();
+                                    logSceneState("after-hide", stage.getScene());
+                                    logVisualDetails(stage.getScene());
                                 }
 
                                 // signal that changes to frame have been made
