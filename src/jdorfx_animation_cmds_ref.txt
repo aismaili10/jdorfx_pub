@@ -1,6 +1,6 @@
 Animation Commands for JDORFX
 
-The following animation commands were either already added or will soon be added to JDORFX to enable JavaFX-based animations:
+The following animation commands were added to JDORFX to enable JavaFX-based animations:
 
 
 Command
@@ -32,9 +32,9 @@ rotateTransition
 	[Double byAngle]	-- Degrees to rotate by
 	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
 	[Boolean autoReverse]	-- .true or .false (default=.false)
-	[String axisX]		-- X component of rotation axis
-	[String axisY]		-- Y component of rotation axis
-	[String axisZ]		-- Z component of rotation axis
+	[Double axisX]		-- X component of rotation axis (optional, default: 0.0)
+	[Double axisY]		-- Y component of rotation axis (optional, default: 0.0)
+	[Double axisZ]		-- Z component of rotation axis (optional, default: 1.0)
 
 animationScale
 scaleTransition
@@ -46,6 +46,18 @@ scaleTransition
 	[Double byZ]		-- Scale factor for Z axis (3D only)
 	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
 	[Boolean autoReverse]	-- .true or .false (default=.false)
+
+animationPauseTransition
+pauseTransition
+	String animName		-- Creates pause transition animation with animName
+	Double duration		-- Duration in milliseconds (the pause length)
+	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
+	[Boolean autoReverse]	-- .true or .false (default=.false)
+
+	NOTE: PauseTransition has no target node. Use it to insert delays into
+	sequential or parallel transitions. Example:
+	  animationPauseTransition delay1 500 1 .false
+	  animationSequential mySeq anim1 delay1 anim2
 
 animationTranslate
 translateTransition
@@ -70,7 +82,7 @@ pathTransition
 animationFill
 fillTransition
 	String animName		-- Creates fill transition animation with animName
-	String nodeName		-- Name of shape or 3D shape to animate
+	String shapeName		-- Name of 2D Shape to animate (must be a `Shape`)
 	Double duration		-- Duration in milliseconds
 	[String fromValue]	-- Starting color
 	[String toValue]	-- Ending color
@@ -80,7 +92,7 @@ fillTransition
 animationStroke
 strokeTransition
 	String animName		-- Creates stroke transition animation with animName
-	String shapeName	-- Name of shape to animate
+	String shapeName	-- Name of 2D Shape to animate (must be a `Shape`)
 	Double duration		-- Duration in milliseconds
 	[String fromColor]	-- Starting stroke color
 	[String toColor]	-- Ending stroke color
@@ -90,32 +102,35 @@ strokeTransition
 animationSequential
 sequentialTransition
 	String animName		-- Creates sequential transition animation with animName
-	[String nodeName]		-- Name of shape or 3D shape to animate
-							-- not required if anim* already specify nodeName
-	String anim1  		-- Name of first animation to play
+	[String nodeName]	-- OPTIONAL: Name of shape/3D shape to provide default target node.
+				   If omitted or resolved to an animation name, that animation becomes
+				   the first child to play.
+	String anim1  		-- Name of first animation to play (if nodeName was provided)
 	String anim2  		-- Name of second animation to play after first finishes
 	[String anim3]		-- Optional name of third animation to play after second finishes
 	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
 	[Boolean autoReverse]	-- .true or .false (default=.false)
 
+	Usage forms:
+	  animationSequential animName nodeName anim1 anim2 ... [cycleCount] [autoReverse]
+	  animationSequential animName anim1 anim2 ... [cycleCount] [autoReverse]
+
 
 animationParallel
 parallelTransition
 	String animName		-- Creates parallel transition animation with animName
-	[String nodeName]		-- Name of shape or 3D shape to animate
-							-- not required if anim* already specify nodeName
-	String anim1  		-- Name of first animation to play
+	[String nodeName]	-- OPTIONAL: Name of shape/3D shape to provide default target node.
+				   If omitted or resolved to an animation name, that animation becomes
+				   the first child to play.
+	String anim1  		-- Name of first animation to play (if nodeName was provided)
 	String anim2  		-- Name of second animation to play simultaneously with first
 	[String anim3]		-- Optional name of third animation to play simultaneously
 	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
 	[Boolean autoReverse]	-- .true or .false (default=.false)
 
-animationPauseTransition
-pauseTransition
-	String animName		-- Creates pause transition animation with animName
-	Double duration		-- Duration in milliseconds
-	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
-	[Boolean autoReverse]	-- .true or .false (default=.false)
+	Usage forms:
+	  animationParallel animName nodeName anim1 anim2 ... [cycleCount] [autoReverse]
+	  animationParallel animName anim1 anim2 ... [cycleCount] [autoReverse]
 
 
 ================================================================================
@@ -141,9 +156,11 @@ animationStatus
 	String animName		-- Returns current status of animation
 				-- Returns: RUNNING, PAUSED, or STOPPED
 
-
-Note: The commands from here onwards are not implemented yet, but are being worked on,
-therefore command syntax could change when implemented (I will update this reference when implemented).
+setInterpolator
+	String animName		-- Sets interpolator on supported transition animations
+	String interpolator	-- LINEAR|DISCRETE|EASE_IN|EASE_OUT|EASE_BOTH|SPLINE(x1,y1,x2,y2)
+			-- Supported: Fade/Rotate/Scale/Translate/Fill/Stroke/Path transitions
+			-- Not supported: Timeline, Sequential/Parallel (global interpolator not allowed on groups)
 
 ================================================================================
 TIMELINE-BASED ANIMATIONS
@@ -164,32 +181,11 @@ keyframe
 	Double time		-- Time in milliseconds for this keyframe
 	String propertyName	-- [nodeName.]propertyName to animate
 	String targetValue	-- Target value at this time
-	[String interpolator]	-- LINEAR|DISCRETE|EASE_*|SPLINE(x1,y1,x2,y2)
+	[String interpolator]	-- LINEAR|DISCRETE|EASE_IN|EASE_OUT|EASE_BOTH|SPLINE(x1,y1,x2,y2)
 
 keyValue
 	String keyValueName	-- Creates reusable keyValue object
 	String propertyName	-- [nodeName.]propertyName to animate
 	String targetValue	-- Target value
-	[String interpolator]	-- LINEAR|DISCRETE|EASE_*|SPLINE(x1,y1,x2,y2)
+	[String interpolator]	-- LINEAR|DISCRETE|EASE_IN|EASE_OUT|EASE_BOTH|SPLINE(x1,y1,x2,y2)
 
-================================================================================
-ANIMATION TIMER
-================================================================================
-
-animationTimer
-timer
-	String timerName	-- Creates an animation timer with timerName
-
-animationTimer
-timer
-	String timerName	-- Starts the animation timer with timerName
-	"start"
-
-animationTimer
-timer
-	String timerName	-- Stops the animation timer with timerName
-	"stop"
-
-
-Alireza Ismaili
-30-03-2026

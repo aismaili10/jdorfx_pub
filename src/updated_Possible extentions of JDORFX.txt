@@ -1,0 +1,206 @@
+Possible Extensions for JDORFX
+
+The following list documents potential improvements and extensions for JDORFX.
+
+--- Implemented Improvements ---
+
+Depth Buffer Support:
+Enable the depth buffer of the JavaFX Scene to allow proper depth testing between 3D objects. Without a depth buffer, 3D shapes are rendered in drawing order and may incorrectly overlap each other.
+
+Implementation:
+- Set the Scene depth buffer parameter to 'true' in the 'JavaFXDrawingFrame' constructor.
+Status:
+Implemented as of June 2026.
+
+##########################################################################################
+
+--- Planned Extensions / Remaining Work ---
+
+1) Camera Transformations:
+
+Add transformation commands for Camera objects.
+
+Planned functionality:
+- Translation of camera objects
+- Rotation of camera objects
+
+Motivation:
+- Allows users to navigate through 3D scenes without moving individual objects.
+- Complements the existing transformation commands for Shape3D objects.
+
+Status:
+- Planned for Mid-June 2026.
+
+2) Camera Clipping Planes:
+
+Expose JavaFX camera clipping properties through JDORFX commands.
+
+Planned functionality:
+- 'setNearClip'
+- 'setFarClip'
+
+Motivation:
+- Improves rendering of large scenes.
+- Prevents visual artifacts caused by objects that are too close or too far away from the camera.
+
+Status:
+- Planned for Mid-June 2026.
+
+3) Point Light Transformations:
+
+Add transformation commands for PointLight objects.
+
+Planned functionality:
+- Translation of point lights
+- Optional rotation support where meaningful
+
+Motivation:
+- Enables dynamic lighting setups.
+- Allows users to move light sources independently from scene objects.
+
+Status:
+- Planned for Mid-June 2026.
+
+4) CullFace Support for Shape3D Objects:
+
+Expose the JavaFX 'CullFace' property through JDORFX commands.
+
+Planned functionality:
+- NONE
+- BACK
+- FRONT
+
+Motivation:
+- Improves rendering performance.
+- Allows removal of faces that should not be visible from the current viewing direction.
+- Useful for wireframe and mesh-based models.
+
+Status:
+- Planned for Mid-June 2026.
+
+5) Camera Animation Support:
+
+Extend the existing animation framework to support Camera objects.
+
+Possible functionality:
+- TranslateTransition on cameras
+- RotateTransition on cameras
+- Path-based camera movement
+
+Motivation:
+- Enables fly-through animations and scene navigation.
+- Complements the animation system already implemented for JavaFX nodes.
+
+Status:
+- Planned as an extension after camera transformations have been completed.
+
+##########################################################################################
+
+--- Future Extensions ---
+
+The following extensions are considered interesting future work,
+but are currently outside the primary scope of this bachelor thesis.
+
+1) TriangleMesh / MeshView:
+
+Support user-defined 3D meshes through JavaFX TriangleMesh and MeshView classes.
+
+Motivation:
+- Allows creation of arbitrary 3D models.
+
+Challenges:
+- Considerably more complex than the currently supported primitive shapes (Box, Sphere, Cylinder).
+- Requires knowledge of mesh construction and 3D modelling concepts.
+
+2) JavaFX Effects:
+
+Expose JavaFX effect classes through JDORFX.
+
+Examples:
+- Shadow
+- Glow
+- Lighting
+- Reflection
+- Blur effects
+
+3) SubScene Support:
+
+Support multiple JavaFX SubScenes within a single window.
+
+Motivation:
+- Multiple camera views.
+- Different rendering configurations within one application.
+
+4) Charts:
+
+Expose JavaFX chart classes.
+
+Examples:
+- LineChart
+- BarChart
+- PieChart
+
+5) MediaView:
+
+Support playback of video and audio content.
+
+6) WebView:
+
+Embed web content inside JDORFX windows.
+
+7) Event Handling
+
+Provide access to JavaFX event handling mechanisms.
+
+Examples:
+- Mouse events
+- Keyboard events
+- Drag-and-drop interactions
+
+Motivation:
+- Allows creation of interactive applications rather than purely graphical demonstrations.
+
+##########################################################################################
+
+--- Already Completed Extensions ---
+
+Animation Framework:
+A large collection of JavaFX animation commands has been implemented.
+
+Examples include:
+- FadeTransition
+- FillTransition
+- TranslateTransition
+- RotateTransition
+- ScaleTransition
+- PauseTransition
+- PathTransition
+- StrokeTransition
+- SequentialTransition
+- ParallelTransition
+- Timeline, KeyFrame, KeyValue
+
+Status:
+- Largely implemented as of May 2026.
+
+Reference:
+
+- 'src/jdorfx_animation_cmds_ref.txt'
+
+
+##########################################################################################
+
+--- Authors ---
+
+Philipp Schaller
+07-06-2024
+
+Animation framework added:
+
+Alireza Ismaili
+30-03-2026
+
+Document updated:
+
+Alireza Ismaili
+03-06-2026
