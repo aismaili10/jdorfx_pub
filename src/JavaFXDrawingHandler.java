@@ -1603,24 +1603,15 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (arrCommand.length==2)
                         {
-                            fxColor = hmFXColors.get(colorNickName.toUpperCase());
-
-                            if (fxColor==null)
-                            {
-                                try // try to get from a Rexx variable
+                            try {
+                                fxColor = resolveColorFromToken(slot, colorNickName);
+                            } catch (IllegalArgumentException e) {
+                                String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                if (isOR)
                                 {
-                                    fxColor = (Color) getContextVariable(slot, colorNickName);
+                                    writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                                 }
-                                catch (Throwable t) {}
-                                if (fxColor==null)
-                                {
-                                    String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
-                                    if (isOR)
-                                    {
-                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                                    }
-                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
-                                }
+                                return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
                             }
                             if (isOR)
                             {
@@ -1729,24 +1720,16 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             {
                                 canonical=canonical+" "+colorNickName;
                             }
-                            Color fxColor=hmFXColors.get(colorNickName.toUpperCase());
-
-                            if (fxColor==null)
-                            {
-                                try // try to get from a Rexx variable
+                            Color fxColor;
+                            try {
+                                fxColor = resolveColorFromToken(slot, colorNickName);
+                            } catch (IllegalArgumentException e) {
+                                String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                if (isOR)
                                 {
-                                    fxColor = (Color) getContextVariable(slot, colorNickName);
+                                    writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                                 }
-                                catch (Throwable t) {}
-                                if (fxColor==null)
-                                {
-                                    String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
-                                    if (isOR)
-                                    {
-                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                                    }
-                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
-                                }
+                                return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
                             }
                             if (isOR)
                             {
@@ -4157,24 +4140,15 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     if (argNum==3) {
 
                         String colorNickName = arrCommand[2];
-                        fxColor = hmFXColors.get(colorNickName.toUpperCase());
-
-                        if (fxColor==null)
-                        {
-                            try // try to get from a Rexx variable
+                        try {
+                            fxColor = resolveColorFromToken(slot, colorNickName);
+                        } catch (IllegalArgumentException e) {
+                            String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                            if (isOR)
                             {
-                                fxColor = (Color) getContextVariable(slot, colorNickName);
+                                writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                             }
-                            catch (Throwable t) {}
-                            if (fxColor==null)
-                            {
-                                String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
-                                if (isOR)
-                                {
-                                    writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                                }
-                                return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
-                            }
+                            return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
                         }
 
                         material.setDiffuseColor(fxColor);
@@ -4215,24 +4189,16 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     String colorNickName = arrCommand[3];
 
-                    Color fxColor = hmFXColors.get(colorNickName.toUpperCase());
-
-                    if (fxColor==null)
-                    {
-                        try // try to get from a Rexx variable
+                    Color fxColor;
+                    try {
+                        fxColor = resolveColorFromToken(slot, colorNickName);
+                    } catch (IllegalArgumentException e) {
+                        String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                        if (isOR)
                         {
-                            fxColor = (Color) getContextVariable(slot, colorNickName);
+                            writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                         }
-                        catch (Throwable t) {}
-                        if (fxColor==null)
-                        {
-                            String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
-                            if (isOR)
-                            {
-                                writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                            }
-                            return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
-                        }
+                        return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
                     }
 
                     String coloringType=arrCommand[2];
@@ -4359,24 +4325,16 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (argNum==7) {
 
                             colorName = arrCommand[6];
-                            Color fxColor = hmFXColors.get(colorName.toUpperCase());
-
-                            if (fxColor==null)
-                            {
-                                try // try to get from a Rexx variable
+                            Color fxColor;
+                            try {
+                                fxColor = resolveColorFromToken(slot, colorName);
+                            } catch (IllegalArgumentException e) {
+                                String errMsg="color with the supplied nickname \""+colorName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                if (isOR)
                                 {
-                                    fxColor = (Color) getContextVariable(slot, colorName);
+                                    writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                                 }
-                                catch (Throwable t) {}
-                                if (fxColor==null)
-                                {
-                                    String errMsg="color with the supplied nickname \""+colorName+"\" is not registered nor is it a Rexx variable referring to a color";
-                                    if (isOR)
-                                    {
-                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                                    }
-                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
-                                }
+                                return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
                             }
 
                             // iterate through all pixels of wImage and set color
@@ -5501,24 +5459,16 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             {
                                 canonical = canonical+" "+colorNickName;
                             }
-                            Color fxColor=hmFXColors.get(colorNickName.toUpperCase());
-
-                            if (fxColor==null)
-                            {
-                                try // try to get from a Rexx variable
+                            Color fxColor;
+                            try {
+                                fxColor = resolveColorFromToken(slot, colorNickName);
+                            } catch (IllegalArgumentException e) {
+                                String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                if (isOR)
                                 {
-                                    fxColor = (Color) getContextVariable(slot, colorNickName);
+                                    writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                                 }
-                                catch (Throwable t) {}
-                                if (fxColor==null)
-                                {
-                                    String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
-                                    if (isOR)
-                                    {
-                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                                    }
-                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
-                                }
+                                return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
                             }
                             fill.setFromValue(fxColor);
                         }
@@ -5528,26 +5478,18 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             {
                                 canonical = canonical+" "+colorNickName;
                             }
-                            Color fxColor=hmFXColors.get(colorNickName.toUpperCase());
-
-                            if (fxColor==null)
-                            {
-                                try // try to get from a Rexx variable
+                            Color fxColor2;
+                            try {
+                                fxColor2 = resolveColorFromToken(slot, colorNickName);
+                            } catch (IllegalArgumentException e) {
+                                String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                if (isOR)
                                 {
-                                    fxColor = (Color) getContextVariable(slot, colorNickName);
+                                    writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                                 }
-                                catch (Throwable t) {}
-                                if (fxColor==null)
-                                {
-                                    String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
-                                    if (isOR)
-                                    {
-                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                                    }
-                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
-                                }
+                                return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
                             }
-                            fill.setToValue(fxColor);
+                            fill.setToValue(fxColor2);
                         }
                         if (arrCommand.length > 6) {
                             int cycleCount = Integer.parseInt(arrCommand[6]);
@@ -5590,24 +5532,16 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             {
                                 canonical = canonical+" "+colorNickName;
                             }
-                            Color fxColor=hmFXColors.get(colorNickName.toUpperCase());
-
-                            if (fxColor==null)
-                            {
-                                try // try to get from a Rexx variable
+                            Color fxColor;
+                            try {
+                                fxColor = resolveColorFromToken(slot, colorNickName);
+                            } catch (IllegalArgumentException e) {
+                                String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                if (isOR)
                                 {
-                                    fxColor = (Color) getContextVariable(slot, colorNickName);
+                                    writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                                 }
-                                catch (Throwable t) {}
-                                if (fxColor==null)
-                                {
-                                    String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
-                                    if (isOR)
-                                    {
-                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                                    }
-                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
-                                }
+                                return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
                             }
                             stroke.setFromValue(fxColor);
                         }
@@ -5617,26 +5551,18 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             {
                                 canonical = canonical+" "+colorNickName;
                             }
-                            Color fxColor=hmFXColors.get(colorNickName.toUpperCase());
-
-                            if (fxColor==null)
-                            {
-                                try // try to get from a Rexx variable
+                            Color fxColor2;
+                            try {
+                                fxColor2 = resolveColorFromToken(slot, colorNickName);
+                            } catch (IllegalArgumentException e) {
+                                String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
+                                if (isOR)
                                 {
-                                    fxColor = (Color) getContextVariable(slot, colorNickName);
+                                    writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
                                 }
-                                catch (Throwable t) {}
-                                if (fxColor==null)
-                                {
-                                    String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered nor is it a Rexx variable referring to a color";
-                                    if (isOR)
-                                    {
-                                        writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
-                                    }
-                                    return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
-                                }
+                                return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-8", errMsg );
                             }
-                            stroke.setToValue(fxColor);
+                            stroke.setToValue(fxColor2);
                         }
                         if (arrCommand.length > 6) {
                             int cycleCount = Integer.parseInt(arrCommand[6]);
