@@ -198,6 +198,8 @@ package org.oorexx.handlers.jdorfx;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.WritableValue;
+
 import javafx.geometry.Point3D;
 import javafx.scene.*;
 import javafx.scene.canvas.Canvas;
@@ -412,7 +414,7 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
 
     /* instance definitions         */
     JavaFXDrawingFrame fxframe = null;       // maintance a singleton or empty
-    boolean bDebug=true; // true; // false; // true
+    boolean bDebug=false; // true;
 
     // we draw here
     Canvas canvas = null;
@@ -597,7 +599,7 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
     // Animation storage
     HashMap<String, Animation> hmAnimations = new HashMap<>();
     HashMap<String, Timeline> hmTimelines = new HashMap<>();
-    HashMap<String, AnimationTimer> hmAnimationTimers = new HashMap<>();
+    HashMap<String, KeyValue> hmKeyValues = new HashMap<>();
 
     void reset ()   // reset all current variables and caches
     {
@@ -1061,7 +1063,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         break;
                     }
 
-                case WIN_FRAME:     // winFrame [.true|.false]: query or set whether frame is visible
+                case WIN_FRAME:     // winFrame [.true|.false]: query or set whether frame is decorated or not
                     {
                         if (fxframe==null)   // implies creation of JavaDrawingFrame and make it visible
                         {
@@ -5951,16 +5953,183 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         break;
                     }
-                case TIMELINE:  // Not yet implemented
-                case KEYFRAME:  // Not yet implemented
-                // Timeline
-                case ANIMATION_TIMER:  // Not yet implemented
+                case TIMELINE:  // "timeline timelineName [cycleCount] [autoReverse]"
                     {
+                        if (arrCommand.length < 2 || arrCommand.length > 4)
+                        {
+                            throw new IllegalArgumentException("this command needs 1 to 3 arguments (timelineName [cycleCount] [autoReverse]), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        String timelineName = arrCommand[1];
+                        String ucTimelineName = timelineName.toUpperCase();
+
+                        Timeline timeline = hmTimelines.get(ucTimelineName);
+                        if (timeline == null)
+                        {
+                            timeline = new Timeline();
+                            hmTimelines.put(ucTimelineName, timeline);
+                        }
+
+                        if (arrCommand.length > 2)
+                        {
+                            int cycleCount = Integer.parseInt(arrCommand[2]);
+                            timeline.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                        }
+
+                        if (arrCommand.length > 3)
+                        {
+                            if (!checkBooleanValue(arrCommand[3]))
+                            {
+                                throw new IllegalArgumentException("invalid value for autoReverse argument: ["+arrCommand[3]+"], expected true/false");
+                            }
+                            timeline.setAutoReverse(getBooleanValue(arrCommand[3]));
+                        }
+
+                        hmAnimations.put(ucTimelineName, timeline);
+                        resultValue = timeline;
+
                         if (isOR)
                         {
-                            writeOutput(slot, "-- FAILURE (not yet implemented): ["+command+"]");
+                            writeOutput(slot, canonical+" "+timelineName);
                         }
-                        return createCondition (slot, nrCommand, command, ConditionType.FAILURE, "-103", "command not yet implemented");
+                        break;
+                    }
+                case KEYVALUE:  // "keyValue keyValueName [nodeName.]propertyName targetValue [interpolator]"
+                    {
+                        if (arrCommand.length < 4 || arrCommand.length > 5)
+                        {
+                            throw new IllegalArgumentException("this command needs 3 or 4 arguments (keyValueName [nodeName.]propertyName targetValue [interpolator]), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        String keyValueName = arrCommand[1];
+                        String propertyToken = arrCommand[2];
+                        String targetToken = arrCommand[3];
+                        String interpolatorToken = arrCommand.length == 5 ? arrCommand[4] : null;
+
+                        KeyValue keyValue = createKeyValueFromTokens(slot, propertyToken, targetToken, interpolatorToken);
+                        hmKeyValues.put(keyValueName.toUpperCase(), keyValue);
+                        resultValue = keyValue;
+
+                        if (isOR)
+                        {
+                            writeOutput(slot, canonical+" "+keyValueName+" "+propertyToken+" "+targetToken + (interpolatorToken!=null ? " "+interpolatorToken : ""));
+                        }
+                        break;
+                    }
+                case KEYFRAME:  // "keyframe timelineName time keyValueName" OR "keyframe timelineName time [nodeName.]propertyName targetValue [interpolator]"
+                    {
+                        if (arrCommand.length < 4 || arrCommand.length > 6)
+                        {
+                            throw new IllegalArgumentException("this command needs 3 to 5 arguments (timelineName time keyValueName | [nodeName.]propertyName targetValue [interpolator]), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        String timelineName = arrCommand[1];
+                        Timeline timeline = hmTimelines.get(timelineName.toUpperCase());
+                        if (timeline == null)
+                        {
+                            throw new IllegalArgumentException("no timeline with name \""+timelineName+"\" found; create one using command \"timeline\" first");
+                        }
+
+                        double timeMs = Double.parseDouble(arrCommand[2]);
+                        KeyValue keyValue;
+
+                        if (arrCommand.length == 4)
+                        {
+                            String keyValueName = arrCommand[3];
+                            keyValue = hmKeyValues.get(keyValueName.toUpperCase());
+                            if (keyValue == null)
+                            {
+                                throw new IllegalArgumentException("no keyValue with name \""+keyValueName+"\" found");
+                            }
+                        }
+                        else
+                        {
+                            String propertyToken = arrCommand[3];
+                            String targetToken = arrCommand[4];
+                            String interpolatorToken = arrCommand.length == 6 ? arrCommand[5] : null;
+                            keyValue = createKeyValueFromTokens(slot, propertyToken, targetToken, interpolatorToken);
+                        }
+
+                        KeyFrame keyFrame = new KeyFrame(Duration.millis(timeMs), keyValue);
+                        timeline.getKeyFrames().add(keyFrame);
+                        hmAnimations.put(timelineName.toUpperCase(), timeline);
+                        resultValue = keyFrame;
+
+                        if (isOR)
+                        {
+                            writeOutput(slot, canonical+" "+timelineName+" "+timeMs);
+                        }
+                        break;
+                    }
+                case ANIMATION_SET_INTERPOLATOR:  // "setInterpolator animName interpolator"
+                    {
+                        if (arrCommand.length != 3)
+                        {
+                            throw new IllegalArgumentException("this command needs exactly 2 arguments (animName interpolator), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        String animName = arrCommand[1];
+                        String interpolatorToken = arrCommand[2];
+                        String ucAnimName = animName.toUpperCase();
+
+                        Animation anim = hmAnimations.get(ucAnimName);
+                        if (anim == null)
+                        {
+                            throw new IllegalArgumentException("no animation with name \""+animName+"\" found");
+                        }
+
+                        Interpolator interpolator = resolveInterpolator(interpolatorToken);
+
+                        if (anim instanceof FadeTransition)
+                        {
+                            ((FadeTransition) anim).setInterpolator(interpolator);
+                        }
+                        else if (anim instanceof RotateTransition)
+                        {
+                            ((RotateTransition) anim).setInterpolator(interpolator);
+                        }
+                        else if (anim instanceof ScaleTransition)
+                        {
+                            ((ScaleTransition) anim).setInterpolator(interpolator);
+                        }
+                        else if (anim instanceof TranslateTransition)
+                        {
+                            ((TranslateTransition) anim).setInterpolator(interpolator);
+                        }
+                        else if (anim instanceof FillTransition)
+                        {
+                            ((FillTransition) anim).setInterpolator(interpolator);
+                        }
+                        else if (anim instanceof StrokeTransition)
+                        {
+                            ((StrokeTransition) anim).setInterpolator(interpolator);
+                        }
+                        else if (anim instanceof PathTransition)
+                        {
+                            ((PathTransition) anim).setInterpolator(interpolator);
+                        }
+                        else if (anim instanceof Timeline)
+                        {
+                            throw new IllegalArgumentException("timeline \""+animName+"\" does not support setInterpolator; interpolation belongs to each KeyValue");
+                        }
+                        else if (anim instanceof ParallelTransition)
+                        {
+                            throw new IllegalArgumentException("parallel transition \""+animName+"\" does not support a global interpolator; set interpolators on child animations instead");
+                        }
+                        else if (anim instanceof SequentialTransition)
+                        {
+                            throw new IllegalArgumentException("sequential transition \""+animName+"\" does not support a global interpolator; set interpolators on child animations instead");
+                        }
+                        else
+                        {
+                            throw new IllegalArgumentException("animation \""+animName+"\" does not support setInterpolator (type: "+anim.getClass().getSimpleName()+")");
+                        }
+
+                        if (isOR)
+                        {
+                            writeOutput(slot, canonical+" "+animName+" "+interpolatorToken);
+                        }
+                        break;
                     }
 
                 case ANIMATION_PLAY:  // "animationPlay animName"
@@ -5984,7 +6153,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         break;
                     }
-
                 case ANIMATION_PAUSE:  // "animationPause animName"
                     {
                         if (arrCommand.length != 2)
@@ -6048,7 +6216,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (isOR) {
                             writeOutput(slot, canonical+" "+animName);
                         }
-                        System.out.println("[JavaFXDrawingHandler].handleCommand, Animation Status: " + status);
+                        // System.out.println("[JavaFXDrawingHandler].handleCommand, Animation Status: " + status);
                         return status;
                     }
                 // ---------------------- Animation commands --- End
@@ -6189,6 +6357,209 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
         thread.setDaemon(true);
         thread.start();
 
+    }
+
+    private Node resolveNodeForAnimationProperty(String propertyToken)
+    {
+        if (propertyToken!=null && propertyToken.indexOf('.')>0)
+        {
+            String nodeName = propertyToken.substring(0, propertyToken.indexOf('.'));
+            Node node = hmFXShapes.get(nodeName.toUpperCase());
+            if (node == null)
+            {
+                node = hm3DShapes.get(nodeName.toUpperCase());
+            }
+            if (node != null)
+            {
+                return node;
+            }
+        }
+
+        if (fxframe != null)
+        {
+            List<Node> shapeChildren = fxframe.shapeGroup.getChildren();
+            if (!shapeChildren.isEmpty())
+            {
+                return shapeChildren.get(shapeChildren.size()-1);
+            }
+
+            List<Node> shape3DChildren = fxframe.shape3DGroup.getChildren();
+            if (!shape3DChildren.isEmpty())
+            {
+                return shape3DChildren.get(shape3DChildren.size()-1);
+            }
+        }
+
+        if (!hmFXShapes.isEmpty())
+        {
+            return hmFXShapes.values().iterator().next();
+        }
+        if (!hm3DShapes.isEmpty())
+        {
+            return hm3DShapes.values().iterator().next();
+        }
+        return null;
+    }
+
+    private String normalizePropertyName(String propertyToken)
+    {
+        int dotPos = propertyToken.indexOf('.');
+        String propertyName = dotPos>0 ? propertyToken.substring(dotPos+1) : propertyToken;
+        return propertyName.trim().toUpperCase().replace("_", "").replace("-", "");
+    }
+
+    private Color resolveColorFromToken(Object slot, String token)
+    {
+        Color fxColor = hmFXColors.get(token.toUpperCase());
+        if (fxColor == null)
+        {
+            try
+            {
+                fxColor = (Color) getContextVariable(slot, token);
+            }
+            catch (Throwable t)
+            {
+            }
+        }
+        if (fxColor == null)
+        {
+            try
+            {
+                fxColor = Color.web(token);
+            }
+            catch (Throwable t)
+            {
+            }
+        }
+        if (fxColor == null)
+        {
+            throw new IllegalArgumentException("unknown color value: ["+token+"]");
+        }
+        return fxColor;
+    }
+
+    private Interpolator resolveInterpolator(String token)
+    {
+        if (token == null)
+        {
+            return null;
+        }
+
+        String ucToken = token.toUpperCase();
+        if ("DISCRETE".equals(ucToken))
+        {
+            return Interpolator.DISCRETE;
+        }
+        if ("LINEAR".equals(ucToken))
+        {
+            return Interpolator.LINEAR;
+        }
+        if ("EASE_BOTH".equals(ucToken) || "EASEBOTH".equals(ucToken))
+        {
+            return Interpolator.EASE_BOTH;
+        }
+        if ("EASE_IN".equals(ucToken) || "EASEIN".equals(ucToken))
+        {
+            return Interpolator.EASE_IN;
+        }
+        if ("EASE_OUT".equals(ucToken) || "EASEOUT".equals(ucToken))
+        {
+            return Interpolator.EASE_OUT;
+        }
+
+        if (ucToken.startsWith("SPLINE(") && ucToken.endsWith(")"))
+        {
+            String values = ucToken.substring(7, ucToken.length()-1);
+            String [] parts = values.split(",");
+            if (parts.length != 4)
+            {
+                throw new IllegalArgumentException("invalid spline interpolator: ["+token+"], expected SPLINE(x1,y1,x2,y2)");
+            }
+            return Interpolator.SPLINE(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
+        }
+
+        throw new IllegalArgumentException("unknown interpolator: ["+token+"]");
+    }
+
+    private KeyValue createKeyValueFromTokens(Object slot, String propertyToken, String targetToken, String interpolatorToken)
+    {
+        Node node = resolveNodeForAnimationProperty(propertyToken);
+        if (node == null)
+        {
+            throw new IllegalArgumentException("could not resolve target node for property ["+propertyToken+"]");
+        }
+
+        String normalized = normalizePropertyName(propertyToken);
+        WritableValue<?> writableValue = null;
+        Object targetValue = null;
+
+        switch (normalized)
+        {
+            case "OPACITY":
+                writableValue = node.opacityProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "ROTATE":
+                writableValue = node.rotateProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "TRANSLATEX":
+            case "X":
+                writableValue = node.translateXProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "TRANSLATEY":
+            case "Y":
+                writableValue = node.translateYProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "TRANSLATEZ":
+            case "Z":
+                writableValue = node.translateZProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "SCALEX":
+                writableValue = node.scaleXProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "SCALEY":
+                writableValue = node.scaleYProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "SCALEZ":
+                writableValue = node.scaleZProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "FILL":
+            case "FILLCOLOR":
+                if (!(node instanceof Shape))
+                {
+                    throw new IllegalArgumentException("property ["+propertyToken+"] requires a 2D Shape node");
+                }
+                writableValue = ((Shape) node).fillProperty();
+                targetValue = resolveColorFromToken(slot, targetToken);
+                break;
+            case "STROKE":
+            case "STROKECOLOR":
+                if (!(node instanceof Shape))
+                {
+                    throw new IllegalArgumentException("property ["+propertyToken+"] requires a 2D Shape node");
+                }
+                writableValue = ((Shape) node).strokeProperty();
+                targetValue = resolveColorFromToken(slot, targetToken);
+                break;
+            default:
+                throw new IllegalArgumentException("unknown keyframe property: ["+propertyToken+"]");
+        }
+
+        Interpolator interpolator = resolveInterpolator(interpolatorToken);
+        @SuppressWarnings("unchecked")
+        WritableValue<Object> writableObject = (WritableValue<Object>) writableValue;
+        if (interpolator != null)
+        {
+            return new KeyValue(writableObject, targetValue, interpolator);
+        }
+        return new KeyValue(writableObject, targetValue);
     }
 
 
@@ -6745,14 +7116,15 @@ enum EnumCommand {
     ANIMATION_PATH              ( "animationPath"            ) ,    //   "animationPath animName nodeName duration pathName [cycleCount] [autoReverse]"
     ANIMATION_SEQUENTIAL        ( "animationSequential"      ) ,    //   "animationSequential animName animName1 animName2 ..." defines a sequential animation
     ANIMATION_PARALLEL          ( "animationParallel"        ) ,    //   "animationParallel animName animName1 animName2 ..." defines a parallel animation
-    ANIMATION_PAUSE_TRANSITION ( "animationPauseTransition" ) ,    //   "animationPauseTransition animName" pauses the transition of the animation
+    ANIMATION_PAUSE_TRANSITION  ( "animationPauseTransition" ) ,    //   "animationPauseTransition animName" pauses the transition of the animation, i.e. freezes it at current state; if already paused, resumes it
+    ANIMATION_SET_INTERPOLATOR  ( "setInterpolator"          ) ,    //   "setInterpolator animName interpolator" sets interpolator on supported transitions
     ANIMATION_PLAY              ( "animationPlay"            ) ,    //   "animationPlay animName"
     ANIMATION_PAUSE             ( "animationPause"           ) ,    //   "animationPause animName"
     ANIMATION_STOP              ( "animationStop"            ) ,    //   "animationStop animName"
     ANIMATION_STATUS            ( "animationStatus"          ) ,    //   "animationStatus animName" returns status (RUNNING, PAUSED, STOPPED)
     TIMELINE                    ( "timeline"                 ) ,    //   "timeline timelineName [cycleCount] [autoReverse]"
-    KEYFRAME                    ( "keyframe"                 ) ,    //   "keyframe timelineName time propertyName targetValue"
-    ANIMATION_TIMER             ( "animationTimer"           ) ,    //   "animationTimer timerName [start|stop]"
+    KEYFRAME                    ( "keyframe"                 ) ,    //   "keyframe timelineName time keyValueName" OR "keyframe timelineName time [nodeName.]propertyName targetValue [interpolator]"
+    KEYVALUE                    ( "keyValue"                 ) ,    //   "keyValue keyValueName [nodeName.]propertyName targetValue [interpolator]"
 
     NO_OP                       ( "noOp"                     )      // last element, doing nothing
                                ;
@@ -6814,11 +7186,10 @@ enum EnumCommand {
          upperCase2Command.put( "TRANSLATETRANSITION", ANIMATION_TRANSLATE ) ;
          upperCase2Command.put( "PATHTRANSITION"    , ANIMATION_PATH      ) ;
          upperCase2Command.put( "SEQUENTIALTRANSITION", ANIMATION_SEQUENTIAL) ;
-            upperCase2Command.put( "PARALLELTRANSITION", ANIMATION_PARALLEL  ) ;
+         upperCase2Command.put( "PARALLELTRANSITION", ANIMATION_PARALLEL  ) ;
          upperCase2Command.put( "PLAY"              , ANIMATION_PLAY      ) ;
          upperCase2Command.put( "PAUSE"             , ANIMATION_PAUSE     ) ;
          upperCase2Command.put( "STOP"              , ANIMATION_STOP      ) ;
-         upperCase2Command.put( "TIMER"             , ANIMATION_TIMER     ) ;
 
     }
 
