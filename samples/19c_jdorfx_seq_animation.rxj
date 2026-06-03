@@ -1,0 +1,110 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Sequential Animation - Traffic Light
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Sequential Animation"
+newimage 600 600
+winTitle "JDORFX Animation - Sequential Animation"
+
+-- Create a black vertical rectangle to represent the traffic light housing
+color black
+shape housing RECT 250 100 100 300
+fillShape housing
+
+-- Create three circles for red, yellow, and green lights
+color red
+shape redLight ELLI 275 120 50 50
+fillShape redLight
+color yellow
+shape yellowLight ELLI 275 220 50 50
+fillShape yellowLight
+color green
+shape greenLight ELLI 275 320 50 50
+fillShape greenLight
+
+-- Create fade animations for each light
+-- Each light will fade in and out in sequence to simulate traffic light changes
+
+animationFade redAnimIn redLight 500 0.2 1.0 1 .false
+animationFade yellowAnimIn yellowLight 400 0.2 1.0 8 .true
+animationFade greenAnimIn greenLight 500 0.2 1.0 1 .false
+
+animationFade redAnimOut redLight 500 1.0 0.2 1 .false
+animationFade yellowAnimOut yellowLight 500 1.0 0.2 1 .false
+animationFade greenAnimOut greenLight 500 1.0 0.2 1 .false
+
+animationFade redAnimOutInit redLight 10 1.0 0.2 1 .false
+animationFade yellowAnimOutInit yellowLight 10 1.0 0.2 1 .false
+
+animationPlay redAnimOutInit
+animationPlay yellowAnimOutInit
+-- animationPlay greenAnimOut
+
+-- create pause animations
+-- Parameters pauseName duration [cycleCount] [autoReverse]
+animationPauseTransition animPause1 4000 1 .false
+animationPauseTransition animPause2a 200 1 .false
+animationPauseTransition animPause2b 200 1 .false
+animationPauseTransition animPause2c 200 1 .false
+
+-- Create sequential animation
+-- Parameters: animName, nodeName, [anim1, anim2, ...] [cycleCount, autoReverse]
+animationSequential seqAnim1 greenAnimOut "1" .false
+animationSequential seqAnim2 yellowAnimIn yellowAnimOut "1" .false
+animationSequential seqAnim3 redAnimIn animPause1 redAnimOut "1" .false
+animationSequential seqAnim4 greenAnimIn "1" .false
+
+
+animationSequential seqAnimFinal animPause1 seqAnim1 animPause2a seqAnim2 , 
+                        animPause2b seqAnim3 animPause2c seqAnim4 3 .false
+
+sleep 0.25
+-- play animation
+animationPlay seqAnimFinal
+
+-- create perspective camera and add to scene
+camera camera perspective 0 0 0
+setcamera camera
+
+winShow
+
+say "Animation sequential ..."
+say "Press Enter to exit..."
+pull .
+
+animationStop seqAnimFinal
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

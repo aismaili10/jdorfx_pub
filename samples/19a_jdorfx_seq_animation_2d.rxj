@@ -1,0 +1,73 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Sequential Animation - 2D
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Sequential Animation"
+newimage 500 500
+winTitle "JDORFX Animation - Sequential Animation"
+
+-- create shape
+shape circle ELLI 200 200 100 100
+fillShape circle
+
+color DARK_RED 0.65 0.09 0.05 0.9
+
+-- create fill animation
+animationFill fillAnim circle 3000 DARK_RED RED "1" .false
+
+-- Create scale animation
+animationScale scaleAnim circle 2000 1.1 1.1 0 "1" .false
+
+-- Create fade animation
+animationFade fadeAnim circle 500 1 0.5 "4" .true
+
+-- Create sequential animation
+-- Parameters: animName, nodeName, [anim1, anim2, ...] [cycleCount, autoReverse]
+animationSequential seqAnim fillAnim scaleAnim fadeAnim "-1" .true
+
+-- play animation
+animationPlay seqAnim
+
+
+winShow
+
+say "Circle animation sequential ..."
+say "Press Enter to exit..."
+pull .
+
+animationStop seqAnim
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

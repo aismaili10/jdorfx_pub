@@ -1,0 +1,137 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Path Animation: Lunar eclipse
+        - Note: hardcoded eclipse windows and material changes for simplicity
+            - actual occlusion (pysical shadowing) is not part of
+              JDORFX currently
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Path Animation"
+newimage 850 900 .true
+winTitle "JDORFX Animation - Path Animation"
+
+background black
+
+-- create stars in the background
+do i = 1 to 100
+   shape3d star || i sphere random(-100, 900) random(-100, 900) 300 5
+   fill3dShape star || i
+end
+
+sun_x = 150
+sun_y = 425
+sun_z = 0
+-- create 3D shape (Sun)
+shape3d sun sphere sun_x sun_y sun_z 100
+fill3dShape sun
+
+-- create 3D shape (Earth)
+shape3d earth sphere 600 275 0 40
+fill3dShape earth
+
+-- create 3D shape (moon)
+shape3d moon sphere 800 450 0 20
+fill3dShape moon
+
+shape myPath path 1
+pathmoveto myPath 600 275
+pathQuadTo myPath 650 400 600 575
+-- drawshape myPath
+
+
+-- create new material named earthMat
+material earthMat
+-- add image with pathname "8081_earthmap4k.jpg"
+   -- as diffuse map to material earthMat
+materialmap earthMat diffuse "8081_earthmap4k.jpg"
+-- add material earthMat to earth
+setmaterial earth earthMat
+
+material moonMat
+materialmap moonMat diffuse "moonmap4k.jpg"
+setmaterial moon moonMat
+
+material moonShadowMat black
+materialColor moonShadowMat specular black 1
+
+material sunMat
+materialmap sunMat selfIllumination "sun_2k.jpg"
+materialmap sunMat diffuse "sun_2k.jpg"
+setmaterial sun sunMat
+
+-- Create path animation
+-- Parameters: animName, nodeName, duration, pathName, [cycleCount, autoReverse]
+animationPath pathAnim earth 10000 myPath "-1" .true
+
+animationRotate rotateAnim earth 4000 360 "-1" .false 0 1 0
+
+-- play animation
+animationPlay pathAnim
+animationPlay rotateAnim
+animationPlay pathAnim2
+
+-- create perspective camera and add to scene
+camera camera perspective 0 0 0
+setcamera camera
+
+light light1 point sun_x + 80 sun_y sun_z white -- at sun center
+setLight light1
+
+winShow
+
+-- Hardcoded eclipse windows for this sample:
+cycleSecs = 20
+eclipseStart1 = 4
+eclipseDuration = 2
+gapBetweenEclipses = 8
+
+sleep eclipseStart1
+do i = 1 to 2
+   setmaterial moon moonShadowMat
+   sleep eclipseDuration
+   setmaterial moon moonMat
+
+   sleep gapBetweenEclipses
+   setmaterial moon moonShadowMat
+   sleep eclipseDuration
+   setmaterial moon moonMat
+
+   sleep gapBetweenEclipses
+end
+
+animationStop pathAnim
+animationStop rotateAnim
+
+say "Animation completed!"
+say "Ending program..."
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

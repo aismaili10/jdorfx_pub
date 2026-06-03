@@ -1,0 +1,98 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Translation on 3D Shape
+      - Moon Translating through a Wall
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Translating 3D Shapes"
+
+newimage 700 700 .true
+winTitle "JDORFX Animation - Translation"
+color my_prussian_blue 0/255 49/255 83/255
+background my_prussian_blue
+
+-- create a wall
+shape3d wall box 250 350 0 10 400 300
+fill3dShape wall
+
+-- create sphere shape
+shape3d moon sphere 500 350 (-100) 50
+fill3dShape moon
+
+-- create new material named rock
+material rock
+-- add image with pathname "rock_diffuse.jpg" as diffuse map to material rock
+materialmap rock diffuse "rock_diffuse.jpg"
+-- add material rock to rockBox
+setmaterial wall rock
+
+material moonMat
+materialmap moonMat diffuse "moonmap4k.jpg"
+setmaterial moon moonMat
+
+light sunLight point 550 400 (-400) white
+setLight sunLight
+
+light sunLight2 point 20 400 (-400) white
+setLight sunLight2
+
+light sunLight3 point 350 25 (0) white
+setLight sunLight3
+
+-- Create translation animation
+-- Parameters: animName, nodeName, duration, byX, byY, byZ, cycleCount, autoReverse
+animationTranslate translateAnim moon 3000 "-400" 0 0 "-1" .true
+
+animationRotate rotateAnim moon 6000 360 "-1" .false 1 1 1
+
+-- play animation
+animationPlay translateAnim
+animationPlay rotateAnim
+
+-- create perspective camera and add to scene
+camera camera perspective 0 0 0
+setcamera camera
+
+winShow
+
+say "Moon translating ..."
+
+say "Press Enter to exit..."
+pull .
+
+animationStop translateAnim
+animationStop rotateAnim
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

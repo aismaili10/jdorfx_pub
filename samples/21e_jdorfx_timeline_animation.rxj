@@ -1,0 +1,89 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Timeline + KeyFrame + KeyValue: 
+        loading indicator 2
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Timeline / KeyFrame / KeyValue demo"
+
+newimage 400 400
+winTitle "JDORFX Animation - Timeline KeyFrame KeyValue Demo"
+
+background gray
+
+-- Draw a 2D shape we can animate
+color blue
+shape rect1 rectangle 170 170 30 30
+shape rect2 rectangle 170 205 30 30
+shape rect3 rectangle 205 170 30 30
+shape rect4 rectangle 205 205 30 30
+fillshape rect1
+fillshape rect2
+fillshape rect3
+fillshape rect4
+
+-- timeline
+timeline loadingTimeline "-1" .false
+
+-- Add keyframes
+keyframe loadingTimeline 1 rect1.scaleX 1.0 LINEAR
+keyframe loadingTimeline 300 rect1.scaleX 0.20 LINEAR
+keyframe loadingTimeline 600 rect1.scaleX 1.0 LINEAR
+
+keyframe loadingTimeline 150 rect3.scaleY 1.0 LINEAR
+keyframe loadingTimeline 450 rect3.scaleY 0.20 LINEAR
+keyframe loadingTimeline 750 rect3.scaleY 1.0 LINEAR
+
+keyframe loadingTimeline 300 rect4.scaleX 1.0 LINEAR
+keyframe loadingTimeline 600 rect4.scaleX 0.20 LINEAR
+keyframe loadingTimeline 900 rect4.scaleX 1.0 LINEAR
+
+keyframe loadingTimeline 450 rect2.scaleY 1.0 LINEAR
+keyframe loadingTimeline 750 rect2.scaleY 0.20 LINEAR
+keyframe loadingTimeline 1050 rect2.scaleY 1.0 LINEAR
+
+winshow
+
+animationPlay loadingTimeline
+
+say "Timeline demo is running..."
+say "Press Enter to stop animation and exit..."
+pull .
+
+animationStop loadingTimeline
+
+winClose
+
+say "Timeline demo completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

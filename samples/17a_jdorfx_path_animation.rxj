@@ -1,0 +1,104 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Path Animation on 3D Shapes
+      - Earth moving around the Sun on a circular path
+   ======================================================================== */
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Path Animation"
+newimage 850 850 .true
+winTitle "JDORFX Animation - Path Animation"
+
+background black
+
+-- create stars in the background
+do i = 1 to 100
+   shape3d star || i sphere random(-100, 900) random(-100, 900) 300 5
+   fill3dShape star || i
+end
+
+-- create 3D shape (Earth)
+shape3d earth sphere 250 250 0 40
+fill3dShape earth
+
+-- rotate earth
+rotate3dshape earth "-15" 0 0 0 0 0 1
+
+-- create 3D shape (Sun)
+shape3d sun sphere 425 425 0 100
+fill3dShape sun
+
+-- create 2D shape (Circle) to be used as path for animation
+shape circle ELLI 40 40 775 775
+
+
+-- create new material named earthMat
+material earthMat
+-- add image with pathname "8081_earthmap4k.jpg"
+-- as diffuse map to material earthMat
+materialmap earthMat diffuse "8081_earthmap4k.jpg"
+-- add material earthMat to earth
+setmaterial earth earthMat
+
+material sunMat
+materialmap sunMat diffuse "sun_2k.jpg"
+setmaterial sun sunMat
+
+-- Create path animation
+-- Parameters: animName, nodeName, duration, pathName, [cycleCount, autoReverse]
+animationPath pathAnim earth 30000 circle "-1" .false
+
+animationRotate rotateAnim earth 2000 360 "-1" .false 0 1 0
+
+-- set linear interpolator
+setInterpolator rotateAnim "LINEAR"
+setInterpolator pathAnim "LINEAR"
+
+-- play animation
+animationPlay pathAnim
+animationPlay rotateAnim
+
+-- create perspective camera and add to scene
+camera camera perspective 0 0 0
+setcamera camera
+
+winShow
+
+say "Box translating ..."
+say "Press Enter to exit..."
+pull .
+
+animationsStop pathAnim
+animationsStop rotateAnim
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

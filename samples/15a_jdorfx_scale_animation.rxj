@@ -1,0 +1,122 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Scale Transition on 2D Shapes
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Scale Transition on 2D Shapes"
+newImage 550 550
+winTitle "JDORFX Animation - Scale Transition"
+
+background gray
+
+-- Create rectangles (first row)
+color yellow
+shape yelRect RECT 25 25 150 150
+fillShape yelRect
+
+color blue
+shape blueRect RECT 200 25 150 150
+fillShape blueRect
+
+color red
+shape redRect RECT 375 25 150 150
+fillShape redRect
+
+-- Create circles (second row)
+color cyan
+shape cyanCircle ELLI 25 200 150 150
+fillShape cyanCircle
+
+color pink
+shape pinkCircle ELLI 200 200 150 150
+fillShape pinkCircle
+
+color magenta
+shape magentaCircle ELLI 375 200 150 150
+fillShape magentaCircle
+
+-- Create cubics (third row)
+color orange
+shape orangeCubic cubic 25 375 100 500 125 375 175 525
+fillShape orangeCubic
+
+color green
+shape greenCubic cubic 200 375 275 500 300 375 350 525
+fillShape greenCubic
+
+color purple
+shape purpleCubic cubic 375 375 450 500 475 375 525 525
+fillShape purpleCubic
+
+-- Create rotation animation
+-- Parameters: animName, nodeName, duration, byValue, cycleCount, autoReverse
+-- animationRotate rotateAnim blueRect 3000 45 1 .false
+
+-- Create scale animation
+-- Parameters: animName, nodeName, duration, byX, byY, byZ, cycleCount, autoReverse
+animationScale scaleAnim1 yelRect 5000 0 "-1" 0 "-1" .true
+animationScale scaleAnim2 blueRect 2500 "-1" 0 0 "-1" .true
+animationScale scaleAnim3 redRect 5000 0 "-1" 0 "-1" .true
+animationScale scaleAnim4 redRect 2500 "-1" 0 0 "-1" .true
+
+animationScale scaleAnim5 cyanCircle 5000 0 "-1" 0 "-1" .true
+animationScale scaleAnim6 pinkCircle 2500 "-1" 0 0 "-1" .true
+animationScale scaleAnim7 magentaCircle 5000 0 "-1" 0 "-1" .true
+animationScale scaleAnim8 magentaCircle 2500 "-1" 0 0 "-1" .true
+
+animationScale scaleAnim9 orangeCubic 5000 0 "-1" 0 "-1" .true
+animationScale scaleAnim10 greenCubic 2500 "-1" 0 0 "-1" .true
+animationScale scaleAnim11 purpleCubic 5000 0 "-1" 0 "-1" .true
+animationScale scaleAnim12 purpleCubic 2500 "-1" 0 0 "-1" .true
+
+winshow
+
+-- Play created animations
+-- animationPlay rotateAnim
+do i = 1 to 12
+   animationPlay "scaleAnim" || i
+end
+
+say "2D Shapes scale transition ..."
+say "Press Enter to exit..."
+pull .
+
+do i = 1 to 12
+    animationStop "scaleAnim" || i
+end
+
+winClose
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

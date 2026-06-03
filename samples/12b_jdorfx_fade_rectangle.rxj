@@ -1,0 +1,61 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Fully Fading Rectangle
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Fading Rectangle (Fade Out)"
+newImage 600 600
+winTitle "JDORFX Animation - Fading Rectangle"
+
+-- Create a rectangle
+color green
+shape rect RECT 200 200 200 150
+fillShape rect
+
+-- Create fade out animation (single run)
+-- Parameters:
+--   animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
+animationFade fadeOutAnim rect 5000 1.0 0.0 1 .false
+animationPlay fadeOutAnim
+
+winshow
+
+say "Rectangle fading out once..."
+say "Press Enter to exit..."
+pull .
+
+winClose
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

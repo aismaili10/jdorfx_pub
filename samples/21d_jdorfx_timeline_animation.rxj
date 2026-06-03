@@ -1,0 +1,97 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Timeline + KeyFrame + KeyValue: loading indicator
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Timeline / KeyFrame / KeyValue demo"
+
+newimage 400 400
+winTitle "JDORFX Animation - Timeline KeyFrame KeyValue Demo"
+
+background gray
+
+-- Draw a 2D shape we can animate
+color blue
+shape circle1 ellipse 150 185 30 30
+shape circle2 ellipse 185 185 30 30
+shape circle3 ellipse 220 185 30 30
+fillshape circle1
+fillshape circle2
+fillshape circle3
+
+-- timeline
+timeline initialOpacityTimeline 1 .false
+timeline loadingTimeline "-1" .true
+
+-- Create reusable KeyValue
+keyValue initialOpacityKV1 circle1.opacity 0.20 LINEAR
+keyValue initialOpacityKV2 circle2.opacity 0.20 LINEAR
+keyValue initialOpacityKV3 circle3.opacity 0.20 LINEAR
+
+keyValue fadeKV1 circle1.opacity 0.20 LINEAR
+keyValue fadeKV2 circle1.opacity 1.0 LINEAR
+keyValue fadeKV3 circle2.opacity 0.20 LINEAR
+keyValue fadeKV4 circle2.opacity 1.0 LINEAR
+keyValue fadeKV5 circle3.opacity 0.20 LINEAR
+keyValue fadeKV6 circle3.opacity 1.0 LINEAR
+
+-- Add keyframes
+keyframe initialOpacityTimeline 1 initialOpacityKV1
+keyframe initialOpacityTimeline 1 initialOpacityKV2
+keyframe initialOpacityTimeline 1 initialOpacityKV3
+
+keyframe loadingTimeline 10 fadeKV1
+keyframe loadingTimeline 300 fadeKV2
+keyframe loadingTimeline 300 fadeKV3
+keyframe loadingTimeline 600 fadeKV4
+keyframe loadingTimeline 600 fadeKV5
+keyframe loadingTimeline 900 fadeKV6
+
+
+winshow
+animationPlay initialOpacityTimeline
+sleep 0.1
+animationPlay loadingTimeline
+
+say "Timeline demo is running..."
+say "Press Enter to stop animation and exit..."
+pull .
+
+animationStop initialOpacityTimeline
+animationStop loadingTimeline
+
+winClose
+
+say "Timeline demo completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

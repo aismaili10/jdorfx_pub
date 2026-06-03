@@ -1,0 +1,128 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Speed Comparison of Rotate Animations
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Rotating Box"
+newimage 750 500
+winTitle "JDORFX Animation - 3D and 2D shapes Rotation"
+
+-- Create Box
+shape3d rockBox box 250 250 0 100 100 100
+fill3dShape rockBox
+
+-- create new material named rock
+material rock
+-- add image with pathname "rock_diffuse.jpg" as diffuse map to material rock
+materialmap rock diffuse "rock_diffuse.jpg"
+-- add material rock to rockBox
+setmaterial rockBox rock
+
+-- Create Cylinder
+shape3d cylinder cylinder 450 250 0 50 100
+fill3dShape cylinder
+
+material matGreen green
+setmaterial cylinder matGreen
+
+-- Create Sphere
+shape3d sphere sphere 650 250 0 50
+fill3dShape sphere
+
+-- create new material named tiles
+material tiles
+-- add image with pathname "tiles.jpg" as diffuse map to material tiles
+materialmap tiles diffuse "tiles.jpg"
+-- add material tiles to sphere
+setmaterial sphere tiles
+
+-- material matOrange orange
+-- setmaterial sphere matOrange
+
+color red
+shape elipse ELLI 200 450 100 50
+fillShape elipse
+
+color blue
+shape rectangle RECT 400 450 100 100
+fillShape rectangle
+
+color green
+shape myPolygon polygon "(650,750,700)" "(450,450,500)" 3
+fillshape myPolygon
+
+
+-- Create rotation animation
+-- Parameters: animName, nodeName, duration, byValue, cycleCount, autoReverse
+animationRotate rotateAnim1 rockBox 3000 360 "-1" .false 1 1 1
+animationRotate rotateAnim2 cylinder 2000 360 "-1" .false 1 1 1
+animationRotate rotateAnim3 sphere 1000 360 "-1" .false 1 1 1
+animationRotate rotateAnim4 elipse 3000 360 "-1" .false 1 1 1
+animationRotate rotateAnim5 rectangle 2000 360 "-1" .false 1 1 1
+animationRotate rotateAnim6 myPolygon 1000 360 "-1" .false 1 1 1
+
+-- set various interpolators for animations
+setInterpolator rotateAnim1 ease_in
+setInterpolator rotateAnim2 ease_out
+setInterpolator rotateAnim3 linear
+setInterpolator rotateAnim4 ease_in
+setInterpolator rotateAnim5 ease_out
+setInterpolator rotateAnim6 linear
+
+-- create perspective camera and add to scene
+camera camera perspective 90 140 "-50"
+setcamera camera
+
+winShow
+
+-- array with objects to rotate
+objects = .Array~of("rockBox", "cylinder", "sphere", ,
+                    "elipse", "rectangle", "myPolygon")
+
+do i = 1 to 6
+    say "Rotating object:" objects[i]
+    -- play animation
+    animationPlay "rotateAnim" || i
+end
+
+say "Box rotating ..."
+say "Press Enter to exit..."
+pull .
+
+do i = 1 to 6
+    animationStop "rotateAnim" || i
+end
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

@@ -1,0 +1,118 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Rotating 2D Shapes
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Rotating Rectangle"
+newImage 550 450
+winTitle "JDORFX Animation - Rectangle Rotation"
+
+background brown
+
+-- Create a rectangle
+color yellow
+shape rect RECT 200 50 150 150
+fillShape rect
+
+color blue
+shape rect2 RECT 200 200 150 150
+fillShape rect2
+
+-- draw filled polygon with nPoints taken from xPoints-array and yPoints-array
+color red
+shape myPoly polygon "(225,325,275)" "(250,250,300)" 3
+fillshape myPoly
+
+color green
+shape myPoly2 polygon "(225,325,275)" "(250,250,300)" 3
+fillshape myPoly2
+
+-- second polygon pair
+color red
+shape myPoly3 polygon "(225,325,275)" "(100,100,150)" 3
+fillshape myPoly3
+
+color green
+shape myPoly4 polygon "(225,325,275)" "(100,100,150)" 3
+fillshape myPoly4
+
+-- Create rotation animation
+-- Parameters: animName, nodeName, duration, byValue, cycleCount, autoReverse
+animationRotate rotateAnim1 rect 3000 360 1 .false
+animationRotate rotateAnim2 rect2 3000 360 1 .false
+animationRotate rotateAnim3 myPoly 3000 "-360" "-1" .true
+animationRotate rotateAnim4 myPoly2 3000 360 "-1" .true
+animationRotate rotateAnim5 myPoly3 3000 360 "-1" .true
+animationRotate rotateAnim6 myPoly4 3000 "-360" "-1" .true
+animationRotate rotateAnim7 rect 1000 "-90" 1 .false
+animationRotate rotateAnim8 rect2 1000 "-90" 1 .false
+animationRotate rotateAnim9 rect 1000 45 1 .false
+animationRotate rotateAnim10 rect2 1000 45 1 .false
+
+winShow
+
+-- Play created animations
+animationPlay rotateAnim1
+animationPlay rotateAnim2
+animationPlay rotateAnim3
+animationPlay rotateAnim4
+animationPlay rotateAnim5
+animationPlay rotateAnim6
+
+say "Rectangle rotating ..."
+
+do i = 1 to 3
+    sleep 3
+    animationPlay rotateAnim7
+    animationPlay rotateAnim8
+    sleep 1
+    animationPlay rotateAnim9
+    animationPlay rotateAnim10
+    sleep 1
+    animationPlay rotateAnim1
+    animationPlay rotateAnim2
+end
+
+
+say "Press Enter to exit..."
+pull .
+
+do i = 1 to 10
+    animationStop "rotateAnim" || i
+end
+
+winClose
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

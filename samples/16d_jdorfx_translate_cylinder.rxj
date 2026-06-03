@@ -1,0 +1,85 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Translation on 3D Shape
+      - Rolling Cylinder on a Floor
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+say "Example: Translating 3D Shapes"
+newimage 700 600 .true
+winTitle "JDORFX Animation - Translation"
+background blue
+
+-- create a floor
+shape3d floor box 350 500 0 900 30 700
+fill3dShape floor
+
+-- create a cylinder shape
+shape3d can cylinder 50 420 0 50 100
+fill3dShape can
+
+-- rotate cylinder as preparation for rolling
+rotate3dshape can 90 0 0 0 1 0 0
+
+-- create new material named rock
+material rock
+-- add image with pathname "rock_diffuse.jpg" as diffuse map to material rock
+materialmap rock diffuse "rock_diffuse.jpg"
+-- add material rock to floor
+setmaterial floor rock
+
+material canMat
+materialmap canMat diffuse "tiles.jpg"
+setmaterial can canMat
+
+-- create translate animation for the cylinder
+animationTranslate translateAnim can 3000 "600" 0 0 "-1" .true
+
+-- create rotate animation for the cylinder
+animationRotate rotateAnim can 3000 360 "-1" .true 0 0 1
+
+-- play animation
+animationPlay translateAnim
+animationPlay rotateAnim
+
+camera camera perspective 0 0 0
+setcamera camera
+
+winShow
+
+say "Translation demo is running..."
+say "Press Enter to stop animation and exit..."
+pull .
+
+animationStop translateAnim
+animationStop rotateAnim
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

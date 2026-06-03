@@ -1,0 +1,110 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Stroke Animation
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Stroke Animation"
+newimage 500 450
+winTitle "JDORFX Animation - Stroke Animation"
+
+background pink
+
+-- create a rectangle
+color yellow
+shape myRect rectangle2d 150 150 210 150
+stroke str1 5
+drawshape myRect
+fillshape myRect
+
+-- create a ellipse
+color cyan
+shape myEllipse ELLI 205 200 100 50
+stroke str2 2
+drawshape myEllipse
+fillshape myEllipse
+
+shape myEllipse2 ELLI 155 155 100 50
+drawshape myEllipse2
+fillshape myEllipse2
+
+shape myEllipse3 ELLI 255 245 100 50
+drawshape myEllipse3
+fillshape myEllipse3
+
+shape myEllipse4 ELLI 155 245 100 50
+drawshape myEllipse4
+fillshape myEllipse4
+
+shape myEllipse5 ELLI 255 155 100 50
+drawshape myEllipse5
+fillshape myEllipse5
+
+shape myEllipse6 ELLI 155 205 40 40
+drawshape myEllipse6
+fillshape myEllipse6
+
+shape myEllipse7 ELLI 315 205 40 40
+drawshape myEllipse7
+fillshape myEllipse7
+
+
+-- Create stroke animation
+-- Parameters: animName, shapeName, duration, [fromColor], [toColor], [cycleCount], [autoReverse]
+animationStroke strokeAnim1 myRect 1200 DARK_GRAY BLUE "-1" .true
+animationStroke strokeAnim2 myEllipse 1200 DARK_GRAY BLUE "-1" .true
+animationStroke strokeAnim3 myEllipse2 1200 DARK_GRAY BLUE "-1" .true
+animationStroke strokeAnim4 myEllipse3 1200 DARK_GRAY BLUE "-1" .true
+animationStroke strokeAnim5 myEllipse4 1200 DARK_GRAY BLUE "-1" .true
+animationStroke strokeAnim6 myEllipse5 1200 DARK_GRAY BLUE "-1" .true
+animationStroke strokeAnim7 myEllipse6 1200 DARK_GRAY BLUE "-1" .true
+animationStroke strokeAnim8 myEllipse7 1200 DARK_GRAY BLUE "-1" .true
+
+
+-- play animation
+do i = 1 to 8
+   animationPlay "strokeAnim" || i
+end
+
+winShow
+
+say "Rectangle stroke animating from DARK_GRAY to DODGE_BLUE ..."
+say "Press Enter to exit..."
+pull .
+
+do i = 1 to 8
+   animationStop "strokeAnim" || i
+end
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

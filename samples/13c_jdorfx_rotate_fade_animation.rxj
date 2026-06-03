@@ -1,0 +1,72 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Rotating & Fading Rectangle
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "Example: Rotating Rectangle"
+newImage 600 600
+winTitle "JDORFX Animation - Rectangle Rotation & Fade"
+
+-- Create a rectangle
+color BLACK
+shape rect RECT 200 200 200 150
+fillShape rect
+
+-- Create rotation animation
+-- Parameters: animName, nodeName, duration, byValue, cycleCount, autoReverse
+animationRotate rotateAnim rect 2000 360*10 "-1" .FALSE
+
+-- Create fade animation
+-- Parameters: 
+--   animName, nodeName, duration, fromValue, toValue, cycleCount, autoReverse
+animationFade fadeAnim rect 500 1 0.3 "-1" .true
+
+-- Play created animations
+animationPlay rotateAnim
+animationPlay fadeAnim
+
+winShow
+
+say "Rectangle rotating ..."
+
+say "Press Enter to exit..."
+pull .
+
+animationStop rotateAnim
+animationStop fadeAnim
+
+winClose
+
+say "Animation completed!"
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"
