@@ -7,7 +7,9 @@
    based on JDOR ("JavaDrawing ooRexx") by Rony G. Flatscher
 
    author:  Philipp Schaller
+   modified & extended by: Alireza Ismaili 
    date:    20240320
+   modiefied: 2026-05-19
    version: 000.20230920
    license: Apache license 2.0
 
@@ -187,6 +189,23 @@ changes:
                         PAINT, SET_XOR_MODE, COMPOSITE, RENDER, CLIP_REMOVE, CLIP, COPY_AREA, DRAW_3D_RECT, FILL_3D_RECT,
                         LOAD_IMAGE, GET_IMAGE, SAVE_IMAGE, DRAW_IMAGE, PUSH_GC, POP_GC, PUSH_IMAGE, POP_IMAGE, SHAPE_GET_PATH_ITERATOR
 
+------------------------------------------------------------------------------------------------------------------------------
+with the goal to extend the functionality of JavaFXDrawingHandler to support animation,
+the following changes were implemented directly into JavaFXDrawingHandler
+changes:
+        2026-05-19:
+                     -The following JDORFX commands were newly created for animation support:
+                        ANIMATION_PLAY, ANIMATION_PAUSE, ANIMATION_STOP, SET_INTERPOLATOR, TIMELINE, KEY_FRAME, KEY_VALUE,
+                        ANIMATION_FADE, ANIMATION_ROTATE, ANIMATION_SCALE, ANIMATION_TRANSLATE, ANIMATION_PATH, ANIMATION_FILL,
+                        ANIMATION_STROKE, ANIMATION_SEQUENTIAL, ANIMATION_PARALLEL
+
+                     -To support animation, the following instance fields were added to JavaFXDrawingHandler:
+                        HashMap<String, Animation> hmAnimations
+                        HashMap<String, Timeline> hmTimelines
+                        HashMap<String, KeyValue> hmKeyValues
+
+                     -other changes to support animation:
+                        - new parameter for JavaFXDrawingFrame constructor to allow enabling depth buffering for 3D shapes
 
 */
 
