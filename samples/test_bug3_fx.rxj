@@ -1,0 +1,95 @@
+
+call addJdorfxHandler "JDORFX"
+
+address JDORFX        -- set default environment to the JDORFX command handler
+
+newImage 500 500
+winTitle "JDORFX Test: pathAppend: Arc shape"
+
+-- CASE 1: connect=true & open arc 
+color red
+-- draw arc with x y width height start length type
+shape myArc arc 50 50 100 100 0 270 0
+
+shape pathA path 1
+pathMoveTo pathA 80 70
+pathLineTo pathA 60 140
+pathAppend pathA myArc .true
+drawShape pathA
+
+
+-- CASE 2: connect=true & closed arc
+shape myArc2 arc 200 50 100 100 0 270 1
+
+shape pathB path 1
+pathMoveTo pathB 230 70
+pathLineTo pathB 210 140
+pathAppend pathB myArc2 .true
+drawShape pathB
+
+
+-- CASE 3: connect=true & closed arc (type 2)
+shape myArc3 arc 350 50 100 100 0 270 2
+
+shape pathC path 1
+pathMoveTo pathC 380 70
+pathLineTo pathC 360 140
+pathAppend pathC myArc3 .true
+drawShape pathC
+
+
+-- CASE 4: connect=false & open arc 
+color red
+-- draw arc with x y width height start length type
+shape myArc4 arc 50 200 100 100 0 120 0
+
+shape pathD path 1
+pathMoveTo pathD 80 70+150
+pathLineTo pathD 60 140+150
+pathAppend pathD myArc4 .false
+drawShape pathD
+
+
+-- CASE 5: connect=false & closed arc
+shape myArc5 arc 200 200 100 100 0 120 1
+
+shape pathE path 1
+pathMoveTo pathE 230 70+150
+pathLineTo pathE 210 140+150
+pathAppend pathE myArc5 .false
+drawShape pathE
+
+
+-- CASE 6: connect=false & closed arc (type 2)
+shape myArc6 arc 350 200 100 100 0 120 2
+
+shape pathF path 1
+pathMoveTo pathF 380 70+150
+pathLineTo pathF 360 140+150
+pathAppend pathF myArc6 .false
+drawShape pathF
+
+
+-- WITHOUT PATHAPPEND: draw arcs separately
+shape myArc7 arc 50 350 100 100 0 120 0
+drawShape myArc7
+shape myArc8 arc 200 350 100 100 0 120 1
+drawShape myArc8
+shape myArc9 arc 350 350 100 100 0 120 2
+drawShape myArc9
+
+shape line1 line 80 (70+150+150) 60 (140+150+150)
+drawShape line1
+shape line2 line 230 (70+150+150) 210 (140+150+150)
+drawShape line2
+shape line3 line 380 (70+150+150) 360 (140+150+150)
+drawShape line3
+
+
+winShow
+
+pull .
+
+exit 0
+
+::requires "jdorfx.cls"    -- get ooRexx-Java bridge

@@ -1,0 +1,45 @@
+
+
+call addJdorFXHandler JDORFX
+address jdorfx
+
+newImage 720 240
+winTitle "JDORFX Test: pathAppend closed/open"
+
+
+-- Case 1: closed shape + connect=true -> should close appended subpath
+color yellow
+shape rectA rectangle 40 40 120 120
+
+color red
+shape pathA path 1
+pathMoveTo pathA 180 170
+pathLineTo pathA 230 140
+pathAppend pathA rectA .true
+drawShape pathA
+
+-- Case 2: closed shape + connect=false -> separate subpath, no connector
+shape rectB rectangle 280 40 120 120
+color green
+shape pathB path 1
+pathMoveTo pathB 420 170
+pathLineTo pathB 470 140
+pathAppend pathB rectB .false
+drawShape pathB
+
+-- Case 3: open shape + connect=true -> should NOT close in JDOR-like behavior
+shape openLine line 560 80 640 130
+color blue
+shape pathC path 1
+pathMoveTo pathC 520 180
+pathLineTo pathC 560 210
+pathAppend pathC openLine .true
+drawShape pathC
+
+winshow
+
+pull .
+
+exit 0
+
+::requires "jdorfx.cls"

@@ -4728,66 +4728,53 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
 
                         // get parameters of fxShape, redraw as "PathElement" and append to fxPath
+                        boolean shapeClosed = false;
                         if (fxShape instanceof Shape)
                         {
 
-                            // PathElement "ArcTo" does not have the arguments "startAngle" and "length" like the 2D shape Arc
-                            // hence, the fxShape arc will be turned into a "Path" shape with "PathElements"
-                            // the newly created "PathElements" will be appended to fxPath
                             if (fxShape instanceof Arc) {
 
-                                // create new Shape type to get parameters of fxShape
-                                Arc arc =  (Arc) fxShape;
+                                // Reproduce JDOR-like append behavior using pure JavaFX.
+                                // Connect at the arc's end point and trace the arc towards its start point.
+                                Arc arc = (Arc) fxShape;
 
-                                // create a new path consisting of the "PathElements" of arc
-                                // shape.union() will create a new CLOSED shape with no stroke width
-                                Path emptyPath = new Path();
-                                Path dummyPath = (Path) Shape.union(emptyPath, arc);
+                                double centerX = arc.getCenterX();
+                                double centerY = arc.getCenterY();
+                                double radiusX = arc.getRadiusX();
+                                double radiusY = arc.getRadiusY();
 
-                                List<PathElement>  elementList = dummyPath.getElements();
+                                // Angles in degrees as supplied by Arc; convert to radians for trig.
+                                double startAngleDeg = arc.getStartAngle();
+                                double lengthDeg = arc.getLength();
+                                double endAngleDeg = startAngleDeg + lengthDeg;
 
-                                int partition = 0;
+                                double startAngleRad = Math.toRadians(startAngleDeg);
+                                double endAngleRad = Math.toRadians(endAngleDeg);
 
-                                LineTo lineTo = new LineTo();
+                                // JavaFX Y axis points downwards; invert sin() to map math coords to screen coords.
+                                double startX = centerX + radiusX * Math.cos(startAngleRad);
+                                double startY = centerY - radiusY * Math.sin(startAngleRad);
+                                double endX = centerX + radiusX * Math.cos(endAngleRad);
+                                double endY = centerY - radiusY * Math.sin(endAngleRad);
 
-                                // the end point of the last LineTo PathElement will be the starting point of the appended shape
-                                // partition is the index of the last point (PathElement) in the list of PathElements
-                                for (int i = 0; i < elementList.size(); i++) {
-                                    if(elementList.get(i) instanceof LineTo){
-                                        lineTo = (LineTo) elementList.get(i);
-                                        partition = i;
-                                    }
-
-                                }
+                                boolean largeArcFlag = Math.abs(lengthDeg) > 180.0;
+                                boolean sweepFlag = lengthDeg < 0.0;
 
                                 if (bConnect) {
-
-                                    // connect path to starting point of fxShape
-                                    fxPath.getElements().add(new LineTo(lineTo.getX(),lineTo.getY()));
-
+                                    fxPath.getElements().add(new LineTo(startX, startY));
                                 } else {
-                                    // move to starting point of fxShape
-                                    fxPath.getElements().add(new MoveTo(lineTo.getX(),lineTo.getY()));
+                                    fxPath.getElements().add(new MoveTo(startX, startY));
                                 }
 
-                                // add PathElements from starting point (index = partition + 1) to end of list
-                                for (int i = partition+1; i < elementList.size()-1; i++) {
-                                    fxPath.getElements().add(elementList.get(i));
-                                }
-                                if(arc.getType() == ArcType.OPEN){
+                                fxPath.getElements().add(
+                                    new ArcTo(radiusX, radiusY, 0.0, endX, endY, largeArcFlag, sweepFlag)
+                                );
 
-                                    // add PathElements from first element of list to end point (index = partition)
-                                    // do not add the last LineTo element so the appended arc remains open
-                                    for (int i = 1; i < partition; i++) {
-                                        fxPath.getElements().add(elementList.get(i));
-                                    }
-                                }
-                                else {
-                                    // add PathElements from first element of list to end point (index = partition + 1)
-                                    // includes the last LineTo element
-                                    for (int i = 1; i < partition+1; i++) {
-                                        fxPath.getElements().add(elementList.get(i));
-                                    }
+                                if (arc.getType() == ArcType.CHORD) {
+                                    fxPath.getElements().add(new ClosePath());
+                                } else if (arc.getType() == ArcType.ROUND) {
+                                    fxPath.getElements().add(new LineTo(centerX, centerY));
+                                    fxPath.getElements().add(new ClosePath());
                                 }
 
                             }
@@ -4843,6 +4830,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                 // add new elements to path
                                 fxPath.getElements().add(element);
                                 fxPath.getElements().add(element2);
+                                shapeClosed = true;
 
                             }
                             else if (fxShape instanceof Line) {
@@ -4861,6 +4849,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                 //javafx LineTo(double x, double y)
                                 // get parameters from fxShape and set parameters of element
                                 element = new LineTo(line.getEndX(), line.getEndY());
+
 
                                 // add new element to path
                                 fxPath.getElements().add(element);
@@ -4887,6 +4876,9 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                     for (int i = 2; i < list.size(); i = i + 2) {
                                         fxPath.getElements().add(new LineTo(list.get(i), list.get(i+1) ));
                                     }
+                                }
+                                if (list.size() > 2) {
+                                    shapeClosed = true;
                                 }
 
                             }
@@ -4934,13 +4926,14 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                             new ArcTo(rect.getArcWidth()/2, rect.getArcHeight()/2, 0, rect.getX(), rect.getY() + rect.getHeight() - rect.getArcHeight()/2, false, true),
                                             new LineTo(rect.getX(), rect.getY() + rect.getArcHeight()/2)
                                     );
+                                        shapeClosed = true;
 
                             }
 
                             // in jdor, if bConnect is true, some paths return to starting point of path, others don't
                             // move path to starting point of path
                             // keep on????-----------------------------------------------------------------------------------------------------------------------------------
-                            if (bConnect) {
+                            if (bConnect && shapeClosed) {
                                 // connect path to starting point of fxShape
                                 fxPath.getElements().add(new ClosePath());
                             }
