@@ -225,10 +225,14 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 import javafx.scene.paint.PhongMaterial;
+import javafx.print.PageLayout;
+import javafx.print.PrinterJob;
 import javafx.scene.shape.*;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
@@ -237,6 +241,7 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -245,6 +250,7 @@ import javafx.animation.*;
 import javafx.util.Duration;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 import java.io.File;
 import javax.imageio.ImageIO;   // for loading/saving
@@ -723,6 +729,150 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
         }
     }
 
+    private WritableImage snapshotCanvas() throws Exception
+    {
+        if (Platform.isFxApplicationThread())
+        {
+            return canvas.snapshot(null, null);
+        }
+
+        java.util.concurrent.FutureTask<WritableImage> snapshotTask =
+                new java.util.concurrent.FutureTask<>(() -> canvas.snapshot(null, null));
+        Platform.runLater(snapshotTask);
+        return snapshotTask.get();
+    }
+
+    private Image resolveImage(Object slot, String name)
+    {
+        Image image=hmImages.get(name.toUpperCase());
+        if (image!=null) return image;
+
+        try
+        {
+            Object rexxImage=getContextVariable(slot,name);
+            if (rexxImage instanceof Image) return (Image) rexxImage;
+            if (rexxImage instanceof BufferedImage)
+            {
+                return SwingFXUtils.toFXImage((BufferedImage) rexxImage,null);
+            }
+        }
+        catch (Throwable t) {}
+        return null;
+    }
+
+    private static WritableImage copyImage(Image source, Color background)
+    {
+        int width=(int) source.getWidth();
+        int height=(int) source.getHeight();
+        WritableImage copy=new WritableImage(width,height);
+        PixelReader reader=source.getPixelReader();
+        PixelWriter writer=copy.getPixelWriter();
+
+        for (int y=0;y<height;y++)
+        {
+            for (int x=0;x<width;x++)
+            {
+                Color sourceColor=reader.getColor(x,y);
+                if (background==null || sourceColor.getOpacity()>=1.0)
+                {
+                    writer.setColor(x,y,sourceColor);
+                    continue;
+                }
+
+                double sourceAlpha=sourceColor.getOpacity();
+                double backgroundAlpha=background.getOpacity();
+                double outputAlpha=sourceAlpha+backgroundAlpha*(1.0-sourceAlpha);
+                if (outputAlpha==0.0)
+                {
+                    writer.setColor(x,y,Color.TRANSPARENT);
+                }
+                else
+                {
+                    double red=(sourceColor.getRed()*sourceAlpha+background.getRed()*backgroundAlpha*(1.0-sourceAlpha))/outputAlpha;
+                    double green=(sourceColor.getGreen()*sourceAlpha+background.getGreen()*backgroundAlpha*(1.0-sourceAlpha))/outputAlpha;
+                    double blue=(sourceColor.getBlue()*sourceAlpha+background.getBlue()*backgroundAlpha*(1.0-sourceAlpha))/outputAlpha;
+                    writer.setColor(x,y,new Color(red,green,blue,outputAlpha));
+                }
+            }
+        }
+        return copy;
+    }
+
+    private Image getClipboardImage() throws Exception
+    {
+        if (Platform.isFxApplicationThread())
+        {
+            return Clipboard.getSystemClipboard().getImage();
+        }
+        java.util.concurrent.FutureTask<Image> clipboardTask =
+                new java.util.concurrent.FutureTask<>(() -> Clipboard.getSystemClipboard().getImage());
+        Platform.runLater(clipboardTask);
+        return clipboardTask.get();
+    }
+
+    private boolean setClipboardImage(Image image) throws Exception
+    {
+        java.util.concurrent.Callable<Boolean> action = () -> {
+            ClipboardContent content=new ClipboardContent();
+            content.putImage(image);
+            return Clipboard.getSystemClipboard().setContent(content);
+        };
+        if (Platform.isFxApplicationThread()) return action.call();
+
+        java.util.concurrent.FutureTask<Boolean> clipboardTask=new java.util.concurrent.FutureTask<>(action);
+        Platform.runLater(clipboardTask);
+        return clipboardTask.get();
+    }
+
+    private static BufferedImage imageWithoutAlpha(Image source)
+    {
+        BufferedImage sourceImage=SwingFXUtils.fromFXImage(source,null);
+        BufferedImage opaqueImage=new BufferedImage(sourceImage.getWidth(),sourceImage.getHeight(),BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics=opaqueImage.createGraphics();
+        graphics.setColor(java.awt.Color.WHITE);
+        graphics.fillRect(0,0,opaqueImage.getWidth(),opaqueImage.getHeight());
+        graphics.drawImage(sourceImage,0,0,null);
+        graphics.dispose();
+        return opaqueImage;
+    }
+
+    private boolean printImage(Image image) throws Exception
+    {
+        java.util.concurrent.Callable<Boolean> action = () -> {
+            PrinterJob printJob=PrinterJob.createPrinterJob();
+            if (printJob==null)
+            {
+                throw new IllegalStateException("no default printer is available");
+            }
+
+            PageLayout pageLayout=printJob.getJobSettings().getPageLayout();
+            Canvas printCanvas=new Canvas(pageLayout.getPrintableWidth(),pageLayout.getPrintableHeight());
+            GraphicsContext printGC=printCanvas.getGraphicsContext2D();
+            if (printScaleToPage)
+            {
+                double scale=Math.min(pageLayout.getPrintableWidth()/image.getWidth(),
+                                      pageLayout.getPrintableHeight()/image.getHeight());
+                printGC.scale(scale,scale);
+                printGC.drawImage(image,0,0);
+            }
+            else
+            {
+                printGC.scale(printScaleX,printScaleY);
+                printGC.drawImage(image,printPosX,printPosY);
+            }
+
+            boolean printed=printJob.printPage(pageLayout,printCanvas);
+            if (printed) return printJob.endJob();
+            printJob.cancelJob();
+            return false;
+        };
+        if (Platform.isFxApplicationThread()) return action.call();
+
+        java.util.concurrent.FutureTask<Boolean> printTask=new java.util.concurrent.FutureTask<>(action);
+        Platform.runLater(printTask);
+        return printTask.get();
+    }
+
 
     /* current values      */
     int currX = 0;
@@ -739,6 +889,13 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
 
     boolean currWinUpdate = true;       // update Frame whenever we draw: allows turning updating on/off
     boolean currResizable = false;      // cf. command "winResizable [.true|.false]"
+
+    // JDORFX print settings
+    boolean printScaleToPage=false;
+    int printPosX=0;
+    int printPosY=0;
+    double printScaleX=1.0;
+    double printScaleY=1.0;
 
 
     static boolean fxWinUpdate = true;
@@ -782,6 +939,10 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
     HashMap<String, PhongMaterial> hmMaterial = new HashMap<>();
     // Maps / Textures
     HashMap<String, Image> hmMaps         = new HashMap<>();
+
+    // Images loaded by JDORFX image-management commands
+    HashMap<String, Image> hmImages       = new HashMap<>();
+    ArrayDeque<BufferedImage> imageStack  = new ArrayDeque<>();
     
     // Animation storage
     HashMap<String, Animation> hmAnimations = new HashMap<>();
@@ -797,6 +958,12 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
         currFXFontWeight = FontWeight.NORMAL;   // PLAIN by default
         currFXFontPosture = FontPosture.REGULAR;   // PLAIN by default
         currFXFontSize  = 12;  // by default
+
+        printScaleToPage=false;
+        printPosX=0;
+        printPosY=0;
+        printScaleX=1.0;
+        printScaleY=1.0;
 
         if (canGC!=null)
         {
@@ -822,6 +989,8 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
         hmLightBase.clear();
         hmMaterial.clear();
         hmMaps.clear();
+        hmImages.clear();
+        imageStack.clear();
 
         hmAnimations.clear();
         hmTimelines.clear();
@@ -1644,7 +1813,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     {
                         if (arrCommand.length!=1 && arrCommand.length!=3 && arrCommand.length!=4)
                         {
-                            throw new IllegalArgumentException("this command needs no or 2 (width height) or 3 (width height depthBuffer) arguments, received "+(arrCommand.length-1)+" instead");
+                            throw new IllegalArgumentException("this command needs no or 2 (width height) arguments, received "+(arrCommand.length-1)+" instead");
                         }
                         int width      = prefWidth;
                         int height     = prefHeight;
@@ -1664,10 +1833,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                     canonical = canonical+" "+arrCommand[1] + " " + arrCommand[2];
                                 }
                             }
-                        }
-                        if (isOR)
-                        {
-                            writeOutput(slot, canonical);
                         }
                             // no exception, so args o.k.
                         if (canvas!=null)     // make sure all old GCs get disposed
@@ -1690,9 +1855,444 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         {
                             fxframe = new JavaFXDrawingFrame(canvas, false);
                         }
-
+                        if (isOR)
+                        {
+                            writeOutput(slot, canonical);
+                        }
                     }
                     break;
+
+                case LOAD_IMAGE:      // "loadImage imageNickName fileName" loads an image and returns its dimensions
+                    {
+                        int size = alWordBoundaries.size();
+                        if (size<3)
+                        {
+                            throw new IllegalArgumentException("this command needs 2 arguments (imageNickName filename), received "+(size-1)+" instead");
+                        }
+
+                        String nickName = arrCommand[1];
+                        int [] pos = alWordBoundaries.get(2);
+                        String fileName = command.substring(pos[0]); // filenames may contain blanks
+
+                        Image img;
+                        try (FileInputStream input = new FileInputStream(new File(fileName)))
+                        {
+                            img = new Image(input);
+                        }
+                        if (img.isError())
+                        {
+                            throw new IllegalArgumentException("could not load image from file \""+fileName+"\"", img.getException());
+                        }
+
+                        hmImages.put(nickName.toUpperCase(),img);
+                        if (isOR)
+                        {
+                            writeOutput(slot, canonical+" "+nickName+" "+fileName);
+                        }
+                        return ((int) img.getWidth())+" "+((int) img.getHeight());
+                    }
+
+                case DRAW_IMAGE:      // "drawImage imageNickName [width height [srcX1 srcY1 srcX2 srcY2]] [bkgColor]"
+                    {
+                        int argNum = arrCommand.length;
+                        if (argNum!=2 && argNum!=3 && argNum!=4 && argNum!=5 && argNum!=8 && argNum!=9)
+                        {
+                            throw new IllegalArgumentException("this command needs 1, 2, 3, 4, 7 or 8 arguments, received "+(argNum-1)+" instead");
+                        }
+
+                        String name = arrCommand[1];
+                        canonical += " "+name;
+
+                        Image img = resolveImage(slot,name);
+                        if (img==null)
+                        {
+                            throw new IllegalArgumentException("image with the name \""+name+"\" not found, you must first use \"loadImage "+name+" filename\" or \"pushImage "+name+"\" or assign an image to a Rexx variable named \""+name+"\"");
+                        }
+
+                        String colorNickName = null;
+                        if (argNum==3) colorNickName=arrCommand[2];
+                        else if (argNum==5) colorNickName=arrCommand[4];
+                        else if (argNum==9) colorNickName=arrCommand[8];
+
+                        Color bkgColor = null;
+                        if (colorNickName!=null)
+                        {
+                            bkgColor=hmFXColors.get(colorNickName.toUpperCase());
+                            if (bkgColor==null)
+                            {
+                                String errMsg="color with the supplied nickname \""+colorNickName+"\" is not registered";
+                                if (isOR) writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
+                                return createCondition(slot, nrCommand, command, ConditionType.ERROR, "-14", errMsg);
+                            }
+                        }
+
+                        if (argNum==2 || argNum==3)
+                        {
+                            double width=img.getWidth();
+                            double height=img.getHeight();
+                            if (bkgColor!=null)
+                            {
+                                javafx.scene.paint.Paint oldFill=canGC.getFill();
+                                canGC.setFill(bkgColor);
+                                canGC.fillRect(currX,currY,width,height);
+                                canGC.setFill(oldFill);
+                            }
+                            canGC.drawImage(img,currX,currY);
+                            if (colorNickName!=null) canonical += " "+colorNickName;
+                        }
+                        else
+                        {
+                            int width=string2int(arrCommand[2]);
+                            int height=string2int(arrCommand[3]);
+                            canonical += " "+(bUseInt4numbers ? width : arrCommand[2])+
+                                         " "+(bUseInt4numbers ? height : arrCommand[3]);
+
+                            if (bkgColor!=null)
+                            {
+                                javafx.scene.paint.Paint oldFill=canGC.getFill();
+                                canGC.setFill(bkgColor);
+                                canGC.fillRect(currX,currY,width,height);
+                                canGC.setFill(oldFill);
+                            }
+
+                            if (argNum==4 || argNum==5)
+                            {
+                                canGC.drawImage(img,currX,currY,width,height);
+                            }
+                            else
+                            {
+                                int srcX1=string2int(arrCommand[4]);
+                                int srcY1=string2int(arrCommand[5]);
+                                int srcX2=string2int(arrCommand[6]);
+                                int srcY2=string2int(arrCommand[7]);
+                                canonical += " "+(bUseInt4numbers ? srcX1 : arrCommand[4])+
+                                             " "+(bUseInt4numbers ? srcY1 : arrCommand[5])+
+                                             " "+(bUseInt4numbers ? srcX2 : arrCommand[6])+
+                                             " "+(bUseInt4numbers ? srcY2 : arrCommand[7]);
+                                canGC.drawImage(img,srcX1,srcY1,srcX2-srcX1,srcY2-srcY1,
+                                               currX,currY,width,height);
+                            }
+                            if (colorNickName!=null) canonical += " "+colorNickName;
+                        }
+
+                        if (isOR) writeOutput(slot,canonical);
+                        break;
+                    }
+
+                case SAVE_IMAGE:      // "saveImage fileName" saves the current canvas
+                    {
+                        int size=alWordBoundaries.size();
+                        if (size<2)
+                        {
+                            throw new IllegalArgumentException("this command needs 1 argument (filename)");
+                        }
+
+                        int [] pos=alWordBoundaries.get(1);
+                        String fileName=command.substring(pos[0]); // filenames may contain blanks
+                        String extension="png";
+                        int lastPos=fileName.lastIndexOf('.');
+                        if (lastPos>1 && lastPos<fileName.length()-1)
+                        {
+                            extension=fileName.substring(lastPos+1);
+                        }
+
+                        if (isOR) writeOutput(slot,canonical+" "+fileName);
+                        try
+                        {
+                            WritableImage snapshot=snapshotCanvas();
+                            boolean writeSuccess=ImageIO.write(SwingFXUtils.fromFXImage(snapshot,null),extension,new File(fileName));
+                            if (!writeSuccess)
+                            {
+                                throw new RuntimeException("fileName=["+fileName+"] hence extension=["+extension+"] failed, try extension \"png\" instead");
+                            }
+                            return "1";
+                        }
+                        catch (Throwable t)
+                        {
+                            return createCondition(slot, nrCommand, command, ConditionType.ERROR, "-16", t.toString());
+                        }
+                    }
+
+                case GET_IMAGE:       // "image [imageNickName]" returns the current or registered image
+                    {
+                        if (arrCommand.length>2)
+                        {
+                            throw new IllegalArgumentException("this command needs either no or exactly 1 argument (image's nickname for lookup), received "+(arrCommand.length-1)+" instead");
+                        }
+                        if (arrCommand.length==1)
+                        {
+                            if (isOR) writeOutput(slot,canonical);
+                            return SwingFXUtils.fromFXImage(snapshotCanvas(),null);
+                        }
+
+                        String name=arrCommand[1];
+                        Image img=hmImages.get(name.toUpperCase());
+                        if (img==null)
+                        {
+                            throw new IllegalArgumentException("image with the name \""+name+"\" not found, you must first use \"loadImage "+name+" filename\"");
+                        }
+                        if (isOR) writeOutput(slot,canonical+" "+name);
+                        return SwingFXUtils.fromFXImage(img,null);
+                    }
+
+                case IMAGE_COPY:      // "imageCopy [imageNickName [bkgColor]]"
+                    {
+                        if (arrCommand.length>3)
+                        {
+                            throw new IllegalArgumentException("this command needs no, 1 or 2 arguments (image nickname and optional background color), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        Image source;
+                        if (arrCommand.length==1)
+                        {
+                            source=snapshotCanvas();
+                        }
+                        else
+                        {
+                            String name=arrCommand[1];
+                            source=resolveImage(slot,name);
+                            if (source==null)
+                            {
+                                throw new IllegalArgumentException("image with the name \""+name+"\" not found, you must first use \"loadImage "+name+" filename\" or \"pushImage "+name+"\" or assign an image to a Rexx variable named \""+name+"\"");
+                            }
+                            canonical += " "+name;
+                        }
+
+                        Color background=null;
+                        if (arrCommand.length==3)
+                        {
+                            String colorName=arrCommand[2];
+                            background=hmFXColors.get(colorName.toUpperCase());
+                            if (background==null)
+                            {
+                                String errMsg="color with the supplied nickname \""+colorName+"\" is not registered";
+                                if (isOR) writeOutput(slot,"-- ERROR (nickname argument): ["+command+"]");
+                                return createCondition(slot,nrCommand,command,ConditionType.ERROR,"-14",errMsg);
+                            }
+                            canonical += " "+colorName;
+                        }
+
+                        WritableImage copy=copyImage(source,background);
+                        if (isOR) writeOutput(slot,canonical);
+                        return SwingFXUtils.fromFXImage(copy,null);
+                    }
+
+                case IMAGE_SIZE:      // "imageSize [imageNickName]"
+                    {
+                        if (arrCommand.length>2)
+                        {
+                            throw new IllegalArgumentException("this command needs either no or exactly 1 argument (image's nickname for lookup), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        if (arrCommand.length==1)
+                        {
+                            if (isOR) writeOutput(slot,canonical);
+                            return ((int) canvas.getWidth())+" "+((int) canvas.getHeight());
+                        }
+
+                        String name=arrCommand[1];
+                        Image img=resolveImage(slot,name);
+                        if (img==null)
+                        {
+                            String errMsg="image with the name \""+name+"\" not found, you must first use \"loadImage "+name+" filename\" or supply a Rexx variable referring to an image";
+                            if (isOR) writeOutput(slot,"-- ERROR (nickname argument): ["+command+"]");
+                            return createCondition(slot,nrCommand,command,ConditionType.ERROR,"-2",errMsg);
+                        }
+                        if (isOR) writeOutput(slot,canonical+" "+name);
+                        return ((int) img.getWidth())+" "+((int) img.getHeight());
+                    }
+
+                case CLIPBOARD_GET:   // "clipboardGet [imageNickName]"
+                    {
+                        if (arrCommand.length>2)
+                        {
+                            throw new IllegalArgumentException("this command needs either no or exactly 1 argument (image's nickname for storage), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        String imageName=arrCommand.length==2 ? arrCommand[1] : "CLIPBOARD";
+                        Image clipboardImage=getClipboardImage();
+                        if (clipboardImage==null)
+                        {
+                            throw new IllegalArgumentException("could not fetch image from system clipboard");
+                        }
+                        hmImages.put(imageName.toUpperCase(),clipboardImage);
+                        if (arrCommand.length==2) canonical += " "+imageName;
+                        if (isOR) writeOutput(slot,canonical);
+                        return SwingFXUtils.fromFXImage(clipboardImage,null);
+                    }
+
+                case CLIPBOARD_SET:
+                case CLIPBOARD_SET_WITHOUT_ALPHA:
+                    {
+                        if (arrCommand.length>2)
+                        {
+                            throw new IllegalArgumentException("this command needs either no or exactly 1 argument (image's nickname for lookup), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        Image source;
+                        if (arrCommand.length==1)
+                        {
+                            source=snapshotCanvas();
+                        }
+                        else
+                        {
+                            String imageName=arrCommand[1];
+                            source=resolveImage(slot,imageName);
+                            if (source==null)
+                            {
+                                throw new IllegalArgumentException("image with the name \""+imageName+"\" not found, you must first use \"loadImage "+imageName+" filename\" or \"pushImage "+imageName+"\" or assign an image to a Rexx variable named \""+imageName+"\"");
+                            }
+                            canonical += " "+imageName;
+                        }
+
+                        BufferedImage returnedImage;
+                        Image clipboardImage;
+                        if (cmd==EnumCommand.CLIPBOARD_SET_WITHOUT_ALPHA)
+                        {
+                            returnedImage=imageWithoutAlpha(source);
+                            clipboardImage=SwingFXUtils.toFXImage(returnedImage,null);
+                        }
+                        else
+                        {
+                            returnedImage=SwingFXUtils.fromFXImage(source,null);
+                            clipboardImage=source;
+                        }
+                        if (!setClipboardImage(clipboardImage))
+                        {
+                            throw new IllegalStateException("could not set image on system clipboard");
+                        }
+                        if (isOR) writeOutput(slot,canonical);
+                        return returnedImage;
+                    }
+
+                case PUSH_IMAGE:      // "pushImage [imageNickName]"
+                    {
+                        if (arrCommand.length>2)
+                        {
+                            throw new IllegalArgumentException("this command expects 1 argument at the most (nickName), received "+(arrCommand.length-1)+" argument(s)");
+                        }
+
+                        BufferedImage pushedImage=SwingFXUtils.fromFXImage(snapshotCanvas(),null);
+                        imageStack.push(pushedImage);
+                        if (arrCommand.length==2)
+                        {
+                            String imageName=arrCommand[1];
+                            hmImages.put(imageName.toUpperCase(),SwingFXUtils.toFXImage(pushedImage,null));
+                            canonical += " "+imageName;
+                        }
+                        if (isOR) writeOutput(slot,canonical);
+                        return pushedImage;
+                    }
+
+                case POP_IMAGE:       // "popImage"
+                    {
+                        if (arrCommand.length!=1)
+                        {
+                            throw new IllegalArgumentException("this command does not expect arguments, received "+(arrCommand.length-1)+" argument(s)");
+                        }
+                        if (imageStack.isEmpty())
+                        {
+                            String errMsg="did not return an image (empty stack)";
+                            if (isOR) writeOutput(slot,"-- ERROR (empty stack): ["+command+"]");
+                            return createCondition(slot,nrCommand,command,ConditionType.ERROR,"-16",errMsg);
+                        }
+
+                        BufferedImage poppedImage=imageStack.pop();
+                        canGC.drawImage(SwingFXUtils.toFXImage(poppedImage,null),0,0);
+                        if (isOR) writeOutput(slot,canonical);
+                        return poppedImage;
+                    }
+
+                case PRINT_SCALE_TO_PAGE: // "printScaleToPage [booleanValue]"
+                    {
+                        if (arrCommand.length>2)
+                        {
+                            throw new IllegalArgumentException("this command needs no or exactly 1 argument, received "+(arrCommand.length-1)+" instead");
+                        }
+                        String oldValue=printScaleToPage ? "1" : "0";
+                        if (arrCommand.length==2)
+                        {
+                            String newValue=arrCommand[1];
+                            if (!checkBooleanValue(newValue))
+                            {
+                                throw new IllegalArgumentException("the supplied \"printScaleToPage\" argument \""+newValue+"\" is not a valid BSF4ooRexx850 boolean value, valid values (in any case) are: \"0\", \"1\", \"false\", \"true\", \".false\", \".true\"");
+                            }
+                            printScaleToPage=getBooleanValue(newValue);
+                            canonical += " "+(bUseNames4canonical ? (printScaleToPage ? ".true" : ".false") : newValue);
+                        }
+                        if (isOR) writeOutput(slot,canonical);
+                        return oldValue;
+                    }
+
+                case PRINT_SCALE:     // "printScale [scaleX [scaleY]]"
+                    {
+                        if (arrCommand.length>3)
+                        {
+                            throw new IllegalArgumentException("this command needs no or 1 or 2 arguments, received "+(arrCommand.length-1)+" instead");
+                        }
+                        String oldValue=printScaleX+" "+printScaleY;
+                        if (arrCommand.length>1)
+                        {
+                            double newScaleX=Double.parseDouble(arrCommand[1]);
+                            double newScaleY=arrCommand.length==3 ? Double.parseDouble(arrCommand[2]) : newScaleX;
+                            printScaleX=newScaleX;
+                            printScaleY=newScaleY;
+                            canonical += " "+arrCommand[1];
+                            if (arrCommand.length==3) canonical += " "+arrCommand[2];
+                        }
+                        if (isOR) writeOutput(slot,canonical);
+                        return oldValue;
+                    }
+
+                case PRINT_POS:       // "printPos [x [y]]"
+                    {
+                        if (arrCommand.length>3)
+                        {
+                            throw new IllegalArgumentException("this command expects no, 1 or 2 arguments, received "+(arrCommand.length-1)+" instead");
+                        }
+                        String oldValue=printPosX+" "+printPosY;
+                        if (arrCommand.length>1)
+                        {
+                            int newX=string2int(arrCommand[1]);
+                            int newY=arrCommand.length==3 ? string2int(arrCommand[2]) : newX;
+                            printPosX=newX;
+                            printPosY=newY;
+                            if (bUseInt4numbers) canonical += " "+newX+" "+newY;
+                            else canonical += " "+arrCommand[1]+" "+(arrCommand.length==3 ? arrCommand[2] : arrCommand[1]);
+                        }
+                        if (isOR) writeOutput(slot,canonical);
+                        return oldValue;
+                    }
+
+                case PRINT_IMAGE:     // "printImage [imageNickName]"
+                    {
+                        if (arrCommand.length>2)
+                        {
+                            throw new IllegalArgumentException("this command needs either no or exactly 1 argument (image's nickname for lookup), received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        Image imageToPrint;
+                        if (arrCommand.length==1)
+                        {
+                            imageToPrint=snapshotCanvas();
+                        }
+                        else
+                        {
+                            String imageName=arrCommand[1];
+                            imageToPrint=resolveImage(slot,imageName);
+                            if (imageToPrint==null)
+                            {
+                                throw new IllegalArgumentException("image with the name \""+imageName+"\" not found, you must first use \"loadImage "+imageName+" filename\" or \"pushImage "+imageName+"\" or assign an image to a Rexx variable named \""+imageName+"\"");
+                            }
+                            canonical += " "+imageName;
+                        }
+                        if (isOR) writeOutput(slot,canonical);
+                        if (!printImage(imageToPrint))
+                        {
+                            throw new IllegalStateException("the default printer did not complete the print job");
+                        }
+                        return null;
+                    }
 
                     // create a RexxStringTable, fill it with current settings, stacks, maps and return it;
                     // if optional nameCtxtVariable supplied, store it as a context variable in addition
@@ -1748,6 +2348,13 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         rop.sendMessage2("SETENTRY", "lights"     , hmLightBase          );
                         rop.sendMessage2("SETENTRY", "materials " , hmMaterial           );
                         rop.sendMessage2("SETENTRY", "maps "      , hmMaps               );
+                        rop.sendMessage2("SETENTRY", "images"      , hmImages             );
+                        rop.sendMessage2("SETENTRY", "imageStack"  , imageStack           );
+                        rop.sendMessage2("SETENTRY", "printScaleToPage", (printScaleToPage ? "1" : "0"));
+                        rop.sendMessage2("SETENTRY", "printPosX", printPosX);
+                        rop.sendMessage2("SETENTRY", "printPosY", printPosY);
+                        rop.sendMessage2("SETENTRY", "printScaleX", printScaleX);
+                        rop.sendMessage2("SETENTRY", "printScaleY", printScaleY);
 
                         if (arrCommand.length==2)   // assign to Rexx variable in RexxContext
                         {
