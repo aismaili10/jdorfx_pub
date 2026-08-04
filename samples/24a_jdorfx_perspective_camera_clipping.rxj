@@ -1,0 +1,62 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Perspective Camera Clipping
+   ======================================================================== */
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx with output using (.stdout) error using (.stderr)
+
+newimage 700 450 .true
+background lightblue
+
+-- These boxes are at increasing distances from the camera.
+shape3d nearBox box 100 100 1200 100 100 100
+shape3d visibleBox box "-200" "-100" 600 100 100 100
+shape3d farBox box 520 225 1500 240 240 240
+fillshape3d nearBox
+fillshape3d visibleBox
+-- fillshape3d farBox
+
+-- Create a fixed-eye perspective camera.
+-- Parameters: name, type, x, y, z, fieldOfView, fixedEyeAtCameraZero
+camera view perspective 0 0 0 45 .true
+
+-- Set the visible depth interval from 50 to 1100 units.
+-- Parameters: cameraName, distance
+cameraNearClip view 50
+cameraFarClip view 1100
+setCamera view
+
+winTitle "PerspectiveCamera: nearClip=50, farClip=1100"
+winShow
+say "Only the middle box is inside the clipping interval. Press Enter."
+pull .
+winClose
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

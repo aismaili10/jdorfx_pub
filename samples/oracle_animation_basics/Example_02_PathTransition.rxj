@@ -1,0 +1,73 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+*/
+
+/* ========================================================================
+   Oracle JavaFX 8 Animation Basics, Example 3-2: Path Transition
+   JDORFX equivalent
+   ======================================================================== */
+
+-- Load and register the Java Rexx command handler under its default name JDORFX.
+call addJdorFXHandler
+-- Send the following graphics commands to the JDORFX handler.
+address jdorfx
+
+say "Oracle Example 3-2: Path Transition"
+-- Create a 420 x 280 drawing surface, set its title, and paint it white.
+newimage 420 280
+winTitle "Oracle JavaFX 8 - Path Transition (JDORFX)"
+background white
+
+-- Create the path from Oracle Example 3-2.
+-- shape path parameters: name, PATH, windingRule (1 means non-zero)
+color lightgray
+shape path path 1
+-- Start the path at (20,20).
+pathMoveTo path 20 20
+-- pathCurveTo parameters: pathName, controlX1, controlY1,
+--                         controlX2, controlY2, endX, endY
+pathCurveTo path 380 0 380 120 200 120
+pathCurveTo path 0 120 0 240 380 240
+-- Draw the path using the current light-gray color.
+drawshape path
+
+-- Create and fill the rounded rectangle that follows the path.
+color orange
+shape rectPath roundrect 0 0 40 40 10 10
+fillshape rectPath
+
+-- Create the path transition.
+-- Parameters: animName, nodeName, durationMs, pathName,
+--             cycleCount (-1 means indefinite), autoReverse
+-- JDORFX currently uses PathTransition s default orientation (NONE), so the
+-- rectangle moves along the curve but does not rotate to follow its tangent.
+animationPath pathTransition rectPath 4000 path "-1" .true
+animationPlay pathTransition
+
+-- Display the window and keep the Rexx program alive until Enter is pressed.
+winshow
+say "Press Enter to stop and exit..."
+pull .
+animationStop pathTransition
+winclose
+exit 0
+
+-- Load the ooRexx-Java bridge from the parent samples directory.
+::requires "../jdorfx.cls"

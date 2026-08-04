@@ -1,0 +1,65 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Image Example: Querying and Copying Images
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+-- Query the dimensions of the current image.
+newimage 80 60
+imageSize
+say "Current image dimensions:" rc
+
+-- Return the current image as a BufferedImage.
+image
+currentImage = rc
+say "Current BufferedImage dimensions:" currentImage~getWidth currentImage~getHeight
+
+-- Query a registered image.
+loadImage OOREXX_LOGO "../oorexx_256.png"
+image OOREXX_LOGO
+logoImage = rc
+imageSize OOREXX_LOGO
+say "Registered image dimensions:" rc
+
+-- Copy the registered image and query the Rexx variable containing the copy.
+imageCopy OOREXX_LOGO
+logoCopy = rc
+imageSize "logoCopy"
+say "Copied Rexx-variable image dimensions:" rc
+
+-- Copy the image onto an opaque white background.
+imageCopy OOREXX_LOGO WHITE
+flattenedCopy = rc
+imageSize "flattenedCopy"
+say "Background copy dimensions:" rc
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "../jdorfx.cls"

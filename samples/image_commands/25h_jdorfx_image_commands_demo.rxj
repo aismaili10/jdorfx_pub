@@ -1,0 +1,154 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Image Example: Image Commands Integration Demo
+   ======================================================================== */
+/*
+   Combines ordinary drawing with image loading, drawing, querying, copying,
+   stacking, saving, clipboard, and printing commands. Clipboard and physical
+   printer operations are opt-in because they affect external resources.
+*/
+
+-- Set either flag to .true to enable the corresponding external operation.
+runClipboardDemo = .false
+runPrinterDemo   = .false -- dflt printer must be set
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+-- Create a normal JDORFX drawing.
+newimage 900 560
+winTitle "JDORFX Image Commands Integration Demo"
+color WHITE
+moveTo 0 0
+fillRect 900 560
+
+color BLACK
+moveTo 30 30
+fillPolygon "(30,80,130,180,210,120)" "(30,150,80,170,40,10)" 6
+moveTo 250 40
+fillArc 120 180 40 240
+color RED
+moveTo 430 40
+fillOval 130 90
+color GREEN
+moveTo 610 40
+fillRoundRect 180 100 25 25
+
+-- Save and restore drawing state with the image stack.
+pushImage BASE_DRAWING
+pushedImage = rc
+say "Pushed BufferedImage:" pushedImage~getWidth "x" pushedImage~getHeight
+
+-- This temporary blue overlay is removed visually by popImage.
+color BLUE
+moveTo 0 0
+fillRect 900 560
+popImage
+poppedImage = rc
+say "Popped BufferedImage:" poppedImage~getWidth "x" poppedImage~getHeight
+
+-- Load and draw an external image with every drawImage overload.
+loadImage OOREXX_LOGO "../oorexx_256.png"
+say "Loaded dimensions:" rc
+
+moveTo 30 250
+drawImage OOREXX_LOGO
+moveTo 320 250
+drawImage OOREXX_LOGO 180 180 WHITE
+-- moveTo 530 250
+-- drawImage OOREXX_LOGO 180 180 48 48 208 208 WHITE
+
+-- Query registered and current images.
+imageSize OOREXX_LOGO
+say "Registry dimensions:" rc
+image OOREXX_LOGO
+loadedImage = rc
+say "Returned class:" loadedImage~getClass~getName
+imageSize "loadedImage"
+say "Rexx-variable dimensions:" rc
+
+image
+currentImage = rc
+say "Current canvas snapshot:" currentImage~getWidth "x" currentImage~getHeight
+
+-- Make independent image copies.
+imageCopy OOREXX_LOGO
+logoCopy = rc
+imageSize "logoCopy"
+say "Transparent copy dimensions:" rc
+
+-- imageCopy OOREXX_LOGO WHITE
+-- opaqueLogoCopy = rc
+-- say "Background-composited copy:" opaqueLogoCopy~getWidth "x" opaqueLogoCopy~getHeight
+-- moveTo 740 250
+-- drawImage "opaqueLogoCopy" 120 120
+
+-- Configure printing; setting commands return their previous values.
+printScale 0.75
+say "Previous print scale:" rc
+printPos 20 30
+say "Previous print position:" rc
+printScaleToPage .true
+say "Previous scale-to-page setting:" rc
+
+if runClipboardDemo then do
+    -- Copy the current canvas to the system clipboard and read it back.
+    clipboardSet
+    clipboardGet DEMO_CLIPBOARD
+    clipboardImage = rc
+    imageSize DEMO_CLIPBOARD
+    say "Clipboard dimensions:" rc
+
+    clipboardSetWithoutAlpha DEMO_CLIPBOARD
+    clipboardOpaqueImage = rc
+    say "Clipboard no-alpha result has alpha:" clipboardOpaqueImage~getColorModel~hasAlpha
+end
+else say "Clipboard demo skipped; set runClipboardDemo=.true to enable it"
+
+-- Save the completed canvas.
+saveImage "25h_jdorfx_image_commands_demo.png"
+say "Image saved:" rc
+
+if runPrinterDemo then do
+    -- Submit the current image, then the registered logo, to the default printer.
+    printImage
+    printImage OOREXX_LOGO
+end
+else say "Printer demo skipped; set runPrinterDemo=.true to enable it"
+
+-- imageType and preferredImageType are deliberately not demonstrated:
+-- JavaFX Canvas has no faithful equivalent of BufferedImage raster types.
+
+winShow
+say "The completed image is displayed. Press Enter to exit."
+pull .
+winClose
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "../jdorfx.cls"

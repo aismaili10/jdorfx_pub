@@ -1,0 +1,64 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Camera Clipping Planes
+   ======================================================================== */
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+newimage 600 400 .true
+background lightblue
+shape3d myBox1 box 220 200 1000 120 120 120
+shape3d myBox2 box 400 200 3000 120 120 120
+fillshape3d myBox1
+fillshape3d myBox2
+
+-- Create and activate a fixed-eye perspective camera.
+-- Parameters: name, type, x, y, z, fieldOfView, fixedEyeAtCameraZero
+camera view perspective 300 200 0 45 .true
+setCamera view
+
+winTitle "JDORFX - Camera Clipping Planes"
+winShow
+
+say "After 5 seconds, setting nearClip to 2000 and farClip to 3100."
+sleep 5
+-- Parameters: cameraName, distance
+cameraFarClip view 3100
+cameraNearClip view 2000
+
+say "After 5 more seconds, setting nearClip to 0.1."
+sleep 5
+cameraNearClip view 0.1
+
+say "Only geometry between the clipping planes is visible. Press Enter to close."
+pull .
+winClose
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

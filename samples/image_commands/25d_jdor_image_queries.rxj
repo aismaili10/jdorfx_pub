@@ -1,0 +1,68 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDOR Image Example: Querying and Copying Images
+   ======================================================================== */
+
+-- create JDOR handler
+jdor = .bsf~new("org.oorexx.handlers.jdor.JavaDrawingHandler")
+-- add the Java Rexx command handler, using default name: JDOR
+call BsfCommandHandler "add", "JDOR", jdor
+-- set default environment to JDOR
+address jdor
+
+-- Query the dimensions of the current image.
+newimage 80 60
+imageSize
+say "Current image dimensions:" rc
+
+-- Return the current image as a BufferedImage.
+image
+currentImage = rc
+say "Current BufferedImage dimensions:" currentImage~getWidth currentImage~getHeight
+
+-- Query a registered image.
+loadImage OOREXX_LOGO "../oorexx_256.png"
+image OOREXX_LOGO
+logoImage = rc
+imageSize OOREXX_LOGO
+say "Registered image dimensions:" rc
+
+-- Copy the registered image and query the Rexx variable containing the copy.
+imageCopy OOREXX_LOGO
+logoCopy = rc
+imageSize "logoCopy"
+say "Copied Rexx-variable image dimensions:" rc
+
+-- Copy the image
+-- imageCopy OOREXX_LOGO WHITE -- no background color supported in JDOR
+-- flattenedCopy = rc
+-- imageSize "flattenedCopy"
+-- say "Background copy dimensions:" rc
+-- returns error with background color, 
+-- because JDOR does not support background color in imageCopy command
+
+exit 0
+
+-- get ooRexx-Java bridge
+::requires "BSF.CLS"

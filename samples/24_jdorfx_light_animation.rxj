@@ -1,0 +1,95 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: PointLight Timeline Animation
+   ======================================================================== */
+/*
+   Demonstrates Timeline animation of a PointLight.
+
+   The light moves horizontally across three stationary spheres. Because a
+   JavaFX PointLight is also a Node, its translateX property can be targeted
+   directly by JDORFX keyframes.
+*/
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+say "JDORFX PointLight timeline animation"
+say "Press Enter to stop the animation and close the window."
+
+newimage 800 450 .true
+winTitle "JDORFX - Animated PointLight"
+background black
+
+-- Objects remain stationary so the moving highlight comes from the light.
+shape3d leftSphere   sphere 200 225 600 90
+shape3d middleSphere sphere 400 225 600 90
+shape3d rightSphere  sphere 600 225 600 90
+
+material sphereMaterial darkgray
+setMaterial leftSphere sphereMaterial
+setMaterial middleSphere sphereMaterial
+setMaterial rightSphere sphereMaterial
+
+fill3dShape leftSphere
+fill3dShape middleSphere
+fill3dShape rightSphere
+
+-- Create and activate a perspective camera.
+-- Parameters: name, type, x, y, z, fieldOfView
+camera view perspective 0 0 0 45
+setCamera view
+
+-- A weak ambient light keeps the unlit sides barely visible.
+-- Parameters: name, type, [color]
+light baseLight ambient "#181818"
+setLight baseLight
+
+-- Start the point light to the left and in front of the spheres.
+-- Parameters: name, type, x, y, z, [color]
+light movingLight point 100 150 250 white
+setLight movingLight
+
+-- Move the PointLight from left to right and back forever.
+-- Timeline parameters: name, cycleCount, autoReverse
+timeline lightTimeline "-1" .true
+-- Keyframe parameters: timelineName, time, node.property, targetValue,
+--                      interpolator
+keyframe lightTimeline 1    movingLight.translateX 100 LINEAR
+keyframe lightTimeline 3000 movingLight.translateX 700 EASE_BOTH
+
+winShow
+animationPlay lightTimeline
+
+pull .
+
+animationStop lightTimeline
+winClose
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

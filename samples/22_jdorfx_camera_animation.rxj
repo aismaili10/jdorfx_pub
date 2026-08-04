@@ -1,0 +1,75 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Camera Rotation Animation
+   ======================================================================== */
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+newimage 1000 900 .true
+
+background cyan
+
+shape3d myBox box 500 200 500 120 120 120
+fillshape3d myBox
+
+-- create new material named rock
+material rock
+-- add image with pathname "rock_diffuse.jpg" as diffuse map to material rock
+materialmap rock diffuse "rock_diffuse.jpg"
+-- add material rock to rockBox
+setmaterial myBox rock
+
+-- Create a fixed-eye perspective camera.
+-- Parameters: name, type, x, y, z, fieldOfView, fixedEyeAtCameraZero
+camera view perspective 500 200 0 45 .true
+
+-- Create a camera rotation around the Y axis.
+-- Parameters: animName, nodeName, duration, angle, cycleCount,
+--             autoReverse, axisX, axisY, axisZ
+animationRotate cameraTurn view 10000 "360" "-1" .false 0 1 0
+
+animationPlay cameraTurn
+
+-- Set the camera s visible depth interval.
+-- Parameters: cameraName, distance
+cameraNearClip view 0.1
+cameraFarClip view 10000
+setCamera view
+
+winTitle "JDORFX Animation - Camera Rotation"
+winShow
+
+say "The camera rotates continuously around the box. Press Enter to exit."
+pull .
+
+animationStop cameraTurn
+winClose
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

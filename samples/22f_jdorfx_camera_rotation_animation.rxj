@@ -1,0 +1,99 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Animation Example: Camera Rotation Animation
+   ======================================================================== */
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+newimage 1000 900 .true
+background darkgray
+
+-- Eight boxes surround the camera at 45-degree intervals.
+
+shape3d boxNorth     box 500 450 830 110 180 110
+shape3d boxNorthEast box 733 450 733 110 180 110
+shape3d boxEast      box 830 450 500 110 180 110
+shape3d boxSouthEast box 733 450 267 110 180 110
+shape3d boxSouth     box 500 450 170 110 180 110
+shape3d boxSouthWest box 267 450 267 110 180 110
+shape3d boxWest      box 170 450 500 110 180 110
+shape3d boxNorthWest box 267 450 733 110 180 110
+
+material redBox red
+material orangeBox orange
+material yellowBox yellow
+material greenBox green
+material cyanBox cyan
+material blueBox blue
+material purpleBox purple
+material whiteBox white
+
+setmaterial boxNorth redBox
+setmaterial boxNorthEast orangeBox
+setmaterial boxEast yellowBox
+setmaterial boxSouthEast greenBox
+setmaterial boxSouth cyanBox
+setmaterial boxSouthWest blueBox
+setmaterial boxWest purpleBox
+setmaterial boxNorthWest whiteBox
+
+fillshape3d boxNorth
+fillshape3d boxNorthEast
+fillshape3d boxEast
+fillshape3d boxSouthEast
+fillshape3d boxSouth
+fillshape3d boxSouthWest
+fillshape3d boxWest
+fillshape3d boxNorthWest
+
+-- The fixed-eye camera sits at the exact center of the circle.
+-- Parameters: name, type, x, y, z, fieldOfView, fixedEyeAtCameraZero
+camera view perspective 500 450 500 45 .true
+
+-- Rotate only around Y so the camera turns level, like looking around a room.
+-- Parameters: animName, nodeName, duration, angle, cycleCount,
+--             autoReverse, axisX, axisY, axisZ
+animationRotate cameraTurn view 14000 360 "-1" .false 0 1 0
+
+winTitle "Camera rotation: boxes surrounding the viewer"
+winShow
+animationPlay cameraTurn
+
+-- Parameters: cameraName, distance
+cameraNearClip view 0.1
+cameraFarClip view 10000
+setcamera view
+
+say "The camera has completed a full rotation. Press Enter to close."
+pull .
+
+winClose
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "jdorfx.cls"

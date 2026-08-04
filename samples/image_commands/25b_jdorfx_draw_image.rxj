@@ -1,0 +1,63 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Image Example: Drawing Images
+   ======================================================================== */
+
+-- create JDORFX handler
+-- load and add the Java Rexx command handler, using default name: JDORFX
+call addJdorFXHandler
+-- set default environment to JDORFX
+address jdorfx
+
+newimage 600 300
+winTitle "JDORFX Image - drawImage Overloads"
+
+-- Load and register the source image.
+-- Parameters: imageName, pathName
+loadImage OOREXX_LOGO "../oorexx_256.png"
+
+-- Draw the image at its original size.
+moveTo 0 0
+drawImage OOREXX_LOGO
+
+-- Draw a scaled image on a white background.
+-- Parameters: imageName, width, height, [backgroundColor]
+moveTo 270 0
+drawImage OOREXX_LOGO 128 128 WHITE
+
+-- Draw a scaled section of the source image.
+-- Parameters: imageName, width, height, sourceX, sourceY,
+--             sourceWidth, sourceHeight, [backgroundColor]
+-- moveTo 410 0
+-- drawImage OOREXX_LOGO 128 128 64 64 192 192 WHITE
+
+winShow
+say "Three drawImage variants are displayed. Press Enter to exit."
+pull .
+winClose
+
+exit 0
+
+-- get ooRexx-Java bridge, contains JDORFX Rexx command handler
+::requires "../jdorfx.cls"

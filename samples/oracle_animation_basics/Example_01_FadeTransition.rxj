@@ -1,0 +1,61 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+*/
+
+/* ========================================================================
+   Oracle JavaFX 8 Animation Basics, Example 3-1: Fade Transition
+   JDORFX equivalent
+   ======================================================================== */
+
+-- Load and register the Java Rexx command handler under its default name JDORFX.
+call addJdorFXHandler
+-- Send the following graphics commands to the JDORFX handler.
+address jdorfx
+
+say "Oracle Example 3-1: Fade Transition"
+-- Create a 420 x 280 drawing surface, set its title, and paint it white.
+newimage 420 280
+winTitle "Oracle JavaFX 8 - Fade Transition (JDORFX)"
+background white
+
+-- Select red, create a rounded rectangle, and fill it with the current color.
+-- shape parameters: name, type, x, y, width, height, arcWidth, arcHeight
+color red
+shape rect1 roundrect 10 10 100 100 20 20
+fillshape rect1
+
+-- Create the fade used in Oracle Example 3-1.
+-- Parameters: animName, nodeName, durationMs, fromOpacity, toOpacity,
+--             cycleCount (-1 means indefinite), autoReverse
+animationFade fadeTransition rect1 3000 1.0 0.1 "-1" .true
+-- Start the named animation.
+animationPlay fadeTransition
+
+-- Display the window and keep the Rexx program alive until Enter is pressed.
+winshow
+say "Press Enter to stop and exit..."
+pull .
+-- Stop the animation explicitly before closing the window.
+animationStop fadeTransition
+winclose
+exit 0
+
+-- Load the ooRexx-Java bridge from the parent samples directory.
+::requires "../jdorfx.cls"

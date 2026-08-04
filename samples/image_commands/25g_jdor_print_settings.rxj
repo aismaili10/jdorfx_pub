@@ -1,0 +1,67 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDOR Image Example: Print Settings
+   ======================================================================== */
+
+-- create JDOR handler
+jdor = .bsf~new("org.oorexx.handlers.jdor.JavaDrawingHandler")
+-- add the Java Rexx command handler, using default name: JDOR
+call BsfCommandHandler "add", "JDOR", jdor
+-- set default environment to JDOR
+address jdor
+
+-- Query and change the print scale.
+printScale
+say "Default print scale:" rc
+printScale 2
+say "Previous print scale:" rc
+printScale
+say "Updated print scale:" rc
+
+-- JDOR unconditionally accesses arrCommand[1],
+-- which is not set when no argument is provided,
+-- so it gives an error
+-- Query and change the print position.
+printPos
+say "Default print position:" rc
+printPos 12.4
+say "Previous print position:" rc
+printPos
+say "Updated print position:" rc
+
+-- Query and enable proportional scale-to-page behavior.
+printScaleToPage
+say "Default scale-to-page:" rc
+printScaleToPage .true
+say "Previous scale-to-page:" rc
+printScaleToPage
+say "Updated scale-to-page:" rc
+
+-- printImage             -- submits the current image to the default printer
+-- printImage IMAGE_NAME  -- prints a registered image or image in a Rexx variable
+
+exit 0
+
+-- get ooRexx-Java bridge
+::requires "BSF.CLS"

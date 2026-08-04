@@ -1,0 +1,63 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+*/
+
+/* ========================================================================
+   Oracle JavaFX 8 Animation Basics, Example 3-5: Basic Timeline Animation
+   JDORFX equivalent
+   ======================================================================== */
+
+-- Load and register the Java Rexx command handler under its default name JDORFX.
+call addJdorFXHandler
+-- Send the following graphics commands to the JDORFX handler.
+address jdorfx
+
+say "Oracle Example 3-5: Basic Timeline"
+-- Create the drawing surface and configure its window and background.
+newimage 520 180
+winTitle "Oracle JavaFX 8 - Basic Timeline (JDORFX)"
+background white
+
+-- Create and fill the rectangle animated by the timeline.
+-- shape parameters: name, type, x, y, width, height
+color red
+shape rectBasicTimeline rect 100 50 100 50
+fillshape rectBasicTimeline
+
+-- Create a timeline that repeats indefinitely and reverses after each cycle.
+-- Parameters: timelineName, cycleCount (-1 means indefinite), autoReverse
+timeline basicTimeline "-1" .true
+-- Add a keyframe reached after 500 ms.
+-- Parameters: timelineName, timeMs, node.property, targetValue, [interpolator]
+-- JDORFX animates translateX; +200 gives the same visual x=100 to x=300.
+keyframe basicTimeline 500 rectBasicTimeline.translateX 200
+-- Timelines use the same animationPlay/animationStop controls as transitions.
+animationPlay basicTimeline
+
+-- Display the window and keep the Rexx program alive until Enter is pressed.
+winshow
+say "Press Enter to stop and exit..."
+pull .
+animationStop basicTimeline
+winclose
+exit 0
+
+-- Load the ooRexx-Java bridge from the parent samples directory.
+::requires "../jdorfx.cls"

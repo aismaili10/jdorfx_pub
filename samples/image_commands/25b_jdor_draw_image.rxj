@@ -1,0 +1,66 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDOR Image Example: Drawing Images
+   ======================================================================== */
+
+-- create JDOR handler
+jdor = .bsf~new("org.oorexx.handlers.jdor.JavaDrawingHandler")
+-- add the Java Rexx command handler, using default name: JDOR
+call BsfCommandHandler "add", "JDOR", jdor
+-- set default environment to JDOR
+address jdor
+
+newimage 600 300
+winTitle "JDOR Image - drawImage Overloads"
+
+-- Load and register the source image.
+-- Parameters: imageName, pathName
+loadImage OOREXX_LOGO "../oorexx_256.png"
+
+-- Draw the image at its original size.
+moveTo 0 0
+drawImage OOREXX_LOGO
+
+-- Draw a scaled image on a white background.
+-- Parameters: imageName, width, height, [backgroundColor]
+moveTo 270 0
+drawImage OOREXX_LOGO 128 128 WHITE
+
+-- The source rectangle overload is implemented incorrectly in JDOR
+-- it sets the dx2 and dy2 parameters to the sourceWidth and sourceHeight.
+-- Draw a scaled section of the source image.
+-- Parameters: imageName, width, height, sourceX, sourceY,
+--             sourceWidth, sourceHeight, [backgroundColor]
+-- moveTo 410 0
+-- drawImage OOREXX_LOGO 128 128 64 64 192 192 WHITE
+
+winShow
+say "Three drawImage variants are displayed. Press Enter to exit."
+pull .
+winClose
+
+exit 0
+
+-- get ooRexx-Java bridge
+::requires "BSF.CLS"

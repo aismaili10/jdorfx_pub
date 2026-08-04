@@ -1,0 +1,72 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+*/
+
+/* ========================================================================
+   Oracle JavaFX 8 Animation Basics, Example 3-3: Parallel Transition
+   JDORFX equivalent
+   ======================================================================== */
+
+-- Load and register the Java Rexx command handler under its default name JDORFX.
+call addJdorFXHandler
+-- Send the following graphics commands to the JDORFX handler.
+address jdorfx
+
+say "Oracle Example 3-3: Parallel Transition"
+-- Create the drawing surface and configure its window and background.
+newimage 520 400
+winTitle "Oracle JavaFX 8 - Parallel Transition (JDORFX)"
+background white
+
+-- Create Oracles rounded dark-blue rectangle. Its coordinates include the
+-- original JavaFX translateX=50 and translateY=75 starting offsets.
+color darkblue
+shape rectParallel roundrect 60 275 50 50 15 15
+fillshape rectParallel
+
+-- Define the four child transitions without playing them separately.
+-- Fade parameters: name, node, durationMs, fromOpacity, toOpacity,
+--                  cycleCount, autoReverse
+animationFade fadeTransition rectParallel 3000 1.0 0.3 2 .true
+-- Translate parameters: name, node, durationMs, byX, byY, byZ,
+--                       cycleCount, autoReverse
+animationTranslate translateTransition rectParallel 2000 300 0 0 2 .true
+-- Rotate parameters: name, node, durationMs, byAngle, cycleCount, autoReverse
+animationRotate rotateTransition rectParallel 3000 180 4 .true
+-- Scale parameters: name, node, durationMs, byX, byY, byZ,
+--                   cycleCount, autoReverse
+animationScale scaleTransition rectParallel 2000 1 1 0 2 .true
+
+-- Combine the four children so they execute at the same time.
+-- Final parameters: cycleCount (-1 means indefinite), autoReverse
+animationParallel parallelTransition fadeTransition translateTransition ,
+                  rotateTransition scaleTransition "-1" .false
+animationPlay parallelTransition
+
+-- Display the window and keep the Rexx program alive until Enter is pressed.
+winshow
+say "Press Enter to stop and exit..."
+pull .
+animationStop parallelTransition
+winclose
+exit 0
+
+-- Load the ooRexx-Java bridge from the parent samples directory.
+::requires "../jdorfx.cls"

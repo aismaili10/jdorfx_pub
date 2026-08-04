@@ -1,0 +1,64 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDOR Image Example: Clipboard Operations
+   ======================================================================== */
+
+-- create JDOR handler
+jdor = .bsf~new("org.oorexx.handlers.jdor.JavaDrawingHandler")
+-- add the Java Rexx command handler, using default name: JDOR
+call BsfCommandHandler "add", "JDOR", jdor
+-- set default environment to JDOR
+address jdor
+
+-- Create a partly transparent image.
+newimage 40 30
+color RED
+moveTo 0 0
+fillRect 20 30
+
+-- Copy the current image to the system clipboard.
+setClipboard
+setImage = rc
+say "Set image dimensions:" setImage~getWidth setImage~getHeight
+
+-- Read the clipboard image and register it as COPIED_IMAGE.
+getClipboard COPIED_IMAGE
+clipboardImage = rc
+imageSize COPIED_IMAGE
+say "Retrieved image dimensions:" rc
+
+-- Copy an opaque version of the registered image to the clipboard.
+setClipboardWithoutAlpha COPIED_IMAGE
+opaqueImage = rc
+say "Opaque image has alpha:" opaqueImage~getColorModel~hasAlpha
+
+-- The clipboard aliases use CLIPBOARD as the default registry name.
+clipboardGet
+imageSize CLIPBOARD
+say "Default clipboard registry dimensions:" rc
+
+exit 0
+
+-- get ooRexx-Java bridge
+::requires "BSF.CLS"
