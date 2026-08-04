@@ -2198,9 +2198,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                                 if (isOR)
                                 {
-// TODO: turn dash [] into quoted string instead of using strDash
-// canonical=canonical+" "+strDash+" "+strDashPhase;
-                                    canonical=canonical+" "+floatArrayToRexxArrayExpression(dash)+" "+strDashPhase;
+                                    canonical=canonical+" "+strDash+" "+strDashPhase;
                                 }
 
                                 currMiterLimit = miterlimit;
@@ -2989,7 +2987,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (isOR)
                         {
-                            if (arrCommand.length==7)
+                            if (arrCommand.length>=7)
                             {
                                 canonical = canonical+" "+translateX+" "+translateY+" "+
                                                           scaleX+" "+scaleY+" "+
@@ -3549,6 +3547,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     double y=Double.parseDouble(arrCommand[4]);
                     double z=Double.parseDouble(arrCommand[5]);
 
+                    if (isOR)
+                    {
+                        canonical=canonical+" "+x+" "+y+" "+z;
+                    }
+
                     switch (eShape)
                     {
 
@@ -3573,6 +3576,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             double depth=Double.parseDouble(arrCommand[8]);
 
                             shape3D = new Box(width,height,depth);
+
+                            if (isOR)
+                            {
+                                canonical=canonical+" "+width+" "+height+" "+depth;
+                            }
 
                             shape3D.setTranslateX(x);
                             shape3D.setTranslateY(y);
@@ -3599,6 +3607,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                             shape3D = new Cylinder(radius, height);
 
+                            if (isOR)
+                            {
+                                canonical=canonical+" "+radius+" "+height;
+                            }
+
                             shape3D.setTranslateX(x);
                             shape3D.setTranslateY(y);
                             shape3D.setTranslateZ(z);
@@ -3621,8 +3634,12 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                             double radius=Double.parseDouble(arrCommand[6]);
 
-
                             shape3D = new Sphere(radius);
+
+                            if (isOR)
+                            {
+                                canonical=canonical+" "+radius;
+                            }
 
                             shape3D.setTranslateX(x);
                             shape3D.setTranslateY(y);
@@ -3942,6 +3959,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                 case CAMERA:
                     {
                     int argNum=arrCommand.length;
+                    
+                    if (argNum!=1 && argNum!=2 && argNum!=6 && argNum!=7 && argNum!=8)
+                    {
+                        throw new IllegalArgumentException("this command needs exactly 0, 1, 5 or 6 arguments, received "+(arrCommand.length-1)+" instead");
+                    }
 
                     Camera camera = null;
 
@@ -3949,10 +3971,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     {
                         camera = fxframe.getCamera();
 
-                        if (isOR)
-                        {
-                            writeOutput(slot, canonical);
-                        }
                         if (argNum==2)      // query Shape from registry
                         {
                             String nickName=arrCommand[1];
@@ -3967,13 +3985,17 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                 }
                                 return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-17", errMsg );
                             }
-
                             if (isOR)
                             {
-                                writeOutput(slot, canonical);
+                                canonical=canonical+" "+nickName;
                             }
-                        }
 
+                        }
+                        if (isOR)
+                        {
+                            writeOutput(slot, canonical);
+                        }
+                        
                         // query current camera properties
                         resultValue = "x=" + camera.getTranslateX() + " y=" + camera.getTranslateY() + " z=" + camera.getTranslateZ();
                         if (camera instanceof PerspectiveCamera) {
@@ -3988,11 +4010,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     String nickName=arrCommand[1];
                     String ucNickName=nickName.toUpperCase();
 
-                    if (isOR)
-                    {
-                        canonical=canonical+" "+nickName;
-                    }
-
                     String cameraType=arrCommand[2];
                     String ucCameraType=cameraType.toUpperCase();
 
@@ -4000,6 +4017,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     double x=Double.parseDouble(arrCommand[3]);
                     double y=Double.parseDouble(arrCommand[4]);
                     double z=Double.parseDouble(arrCommand[5]);
+
+                    if (isOR)
+                    {
+                        canonical=canonical+" "+nickName+" "+cameraType+" "+x+" "+y+" "+z;
+                    }
 
                     // only relevant for perspective camera
                     double view= 0;
@@ -4022,9 +4044,9 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     else if (ucCameraType.equals("PERSPECTIVE"))
                     {
 
-                        if (argNum!=6 && argNum!=7)
+                        if (argNum<6 || argNum>8)
                         {
-                            String errMsg="Perspective Camera needs exactly 3 (x y z) or 4 arguments (x y z FieldOfView), however there are "+(argNum-3)+" supplied";
+                            String errMsg="Perspective Camera needs exactly 3 (x y z), 4 arguments (x y z FieldOfView) or 5 arguments (x y z FieldOfView fixedEyeAtCameraZero), however there are "+(argNum-3)+" supplied";
                             if (isOR)
                             {
                                 writeOutput(slot, "-- ERROR (wrong number of arguments for Perspective Camera): ["+command+"]");
@@ -4032,12 +4054,17 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-21", errMsg );
                         }
 
-                        PerspectiveCamera perCamera = new PerspectiveCamera();
+                        boolean fixedEyeAtCameraZero = (argNum==8) ? getBooleanValue(arrCommand[7]) : false;
+                        PerspectiveCamera perCamera = new PerspectiveCamera(fixedEyeAtCameraZero);
 
                         // if argument for field of view is supplied, otherwise default field of view is 30
-                        if (argNum==7) {
+                        if (argNum>=7) {
                             view=Double.parseDouble(arrCommand[6]);
                             perCamera.setFieldOfView(view);
+                            if (isOR)
+                            {
+                                canonical=canonical+" "+view+" "+fixedEyeAtCameraZero;
+                            }
                         }
 
                         camera = perCamera;
@@ -4115,6 +4142,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     {
                     int argNum=arrCommand.length;
 
+                    if (argNum < 2 || argNum > 7 || argNum==5)
+                    {
+                        throw new IllegalArgumentException("this command needs exactly 1 argument (lightName) or 2, 3, 5 or 6 arguments (lightName type [type specific args]), received "+(arrCommand.length-1)+" instead");
+                    }
+
                     String lightName=arrCommand[1];
                     String ucLightName=lightName.toUpperCase();
 
@@ -4136,7 +4168,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (isOR)
                         {
-                            writeOutput(slot, canonical);
+                            writeOutput(slot, canonical+" "+lightName);
                         }
 
                         // query properties of lightBase
@@ -4150,11 +4182,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         return resultValue;
                     }
 
-                    if (isOR)
-                    {
-                        canonical=canonical+" "+lightName;
-                    }
-
                     String lightBaseType=arrCommand[2];
                     String ucLightType=lightBaseType.toUpperCase();
 
@@ -4162,6 +4189,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     double x=0;
                     double y=0;
                     double z=0;
+
+                    if (isOR)
+                    {
+                        canonical=canonical+" "+lightName+" "+lightBaseType;
+                    }
 
                     Color fxColor = null;
 
@@ -4186,6 +4218,10 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             String colorNickName=arrCommand[3];
                             fxColor= hmFXColors.get(colorNickName.toUpperCase());
                             amLight.setColor(fxColor);
+                            if (isOR)
+                            {
+                                canonical=canonical+" "+colorNickName;
+                            }
                         }
 
                         lightBase = amLight;
@@ -4209,6 +4245,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         y=Double.parseDouble(arrCommand[4]);
                         z=Double.parseDouble(arrCommand[5]);
 
+                        if (isOR)
+                        {
+                            canonical=canonical+" "+x+" "+y+" "+z;
+                        }
+
                         PointLight pLight = new PointLight();
 
                         pLight.setTranslateX(x);
@@ -4221,10 +4262,13 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             String colorNickName=arrCommand[6];
                             fxColor= hmFXColors.get(colorNickName.toUpperCase());
                             pLight.setColor(fxColor);
+                            if (isOR)
+                            {
+                                canonical=canonical+" "+colorNickName;
+                            }
                         }
 
                         lightBase = pLight;
-
 
                     }
                     else    // argument is neither ambient nor point
@@ -4281,8 +4325,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     if (arrCommand.length==3)
                     {
-                        turnedOn=arrCommand[2];
-                        String ucTurnedOn=turnedOn.toUpperCase();
+                        turnedOn=arrCommand[2].toUpperCase();
                     }
 
                     final LightBase _targetLight = lightBase;
@@ -4300,7 +4343,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     if (isOR)
                     {
-                        writeOutput(slot, canonical+" "+lightName);
+                        writeOutput(slot, canonical+" "+lightName+(arrCommand.length==3 ? " "+turnedOn : ""));
                     }
 
 
@@ -4315,6 +4358,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     String materialName=arrCommand[1];
                     String ucMaterialName=materialName.toUpperCase();
+
+                    if (isOR)
+                    {
+                        canonical=canonical+" "+materialName;
+                    }
 
                     PhongMaterial material = new PhongMaterial();
 
@@ -4345,6 +4393,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             return createCondition (slot, nrCommand, command, ConditionType.ERROR, "-3", errMsg );
                         }
 
+                        if (isOR)
+                        {
+                            canonical=canonical+" "+colorNickName;
+                        }
+
                         material.setDiffuseColor(fxColor);
                     }
 
@@ -4352,7 +4405,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     if (isOR)
                     {
-                        canonical=canonical+" "+material;
+                        writeOutput(slot, canonical);
                     }
 
                     return material;      // return the material
@@ -4398,6 +4451,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     String coloringType=arrCommand[2];
                     String ucColoringType=coloringType.toUpperCase();
 
+                    if (isOR)
+                    {
+                        canonical=canonical+" "+materialName+" "+coloringType+" "+colorNickName;
+                    }
+
                     if(ucColoringType.equals("DIFFUSE") || ucColoringType.equals("DIFFUSECOLOR")) {
 
                         if (argNum!=4)
@@ -4433,6 +4491,10 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (argNum==5)
                         {
                             specPower= Double.parseDouble(arrCommand[4]);
+                            if (isOR)
+                            {
+                                canonical=canonical+" "+arrCommand[4];
+                            }
                         }
 
                         material.setSpecularPower(specPower);
@@ -4445,7 +4507,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     if (isOR)
                     {
-                        writeOutput(slot, canonical+" " +" "+materialName+" " +fxColor);
+                        writeOutput(slot, canonical);
                     }
 
                     break;
@@ -4470,7 +4532,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     String mapName=arrCommand[1];
                     String ucMapName=mapName.toUpperCase();
 
-                    String mapPath=arrCommand[2];
+                    String mapPath=fromRexxStringLiteral(arrCommand[2]);
 
                     Image map = new javafx.scene.image.Image(new FileInputStream(mapPath));
 
@@ -4613,7 +4675,16 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     if (isOR)
                     {
-                        writeOutput(slot, canonical+" "+mapName+" "+addWidth+" "+addHeight+" "+rotation+" "+colorName);
+                        canonical=canonical+" "+mapName+" "+toRexxStringLiteral(mapPath);
+                        if (argNum>=6)
+                        {
+                            canonical=canonical+" "+addWidth+" "+addHeight+" "+rotation;
+                        }
+                        if (argNum==7)
+                        {
+                            canonical=canonical+" "+colorName;
+                        }
+                        writeOutput(slot, canonical);
                     }
 
                     return map.getWidth() + " " + map.getHeight();
@@ -4626,7 +4697,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     if (argNum!=4)
                     {
-                        String errMsg="MaterialMap needs no or exactly 2 arguments (type map), however there are "+(argNum-2)+" supplied";
+                        String errMsg="MaterialMap needs no or exactly 2 arguments (type map), however there are "+(argNum-1)+" supplied";
                         if (isOR)
                         {
                             writeOutput(slot, "-- ERROR (nickname argument): ["+command+"]");
@@ -4706,7 +4777,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                     if (isOR)
                     {
-                        writeOutput(slot, canonical+" " +" "+materialName+" " +map);
+                        writeOutput(slot, canonical+" "+materialName+" "+mapType+" "+mapName);
                     }
 
                     break;
@@ -5535,6 +5606,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String animName = arrCommand[1];
                         String nodeName = arrCommand[2];
                         double duration = Double.parseDouble(arrCommand[3]);
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName+" "+nodeName+" "+duration;
+                        }
                         
                         // Get the node (shape or shape3D)
                         Node node = hmFXShapes.get(nodeName.toUpperCase());
@@ -5591,18 +5667,35 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
                         }
 
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName+" "+nodeName+" "+duration;
+                        }
+
                         RotateTransition rotate = new RotateTransition(Duration.millis(duration), node);
 
                         // Optional parameters
                         if (arrCommand.length > 4) {
                             rotate.setByAngle(Double.parseDouble(arrCommand[4]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[4];
+                            }
                         }
                         if (arrCommand.length > 5) {
                             int cycleCount = Integer.parseInt(arrCommand[5]);
                             rotate.setCycleCount(cycleCount == -1 ? RotateTransition.INDEFINITE : cycleCount);
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[5];
+                            }
                         }
                         if (arrCommand.length > 6) {
                             rotate.setAutoReverse(getBooleanValue(arrCommand[6]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[6];
+                            }
                         }
                         
                         // Handle axis parameters (axisX, axisY, axisZ)
@@ -5611,12 +5704,16 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             double axisY = (arrCommand.length > 8) ? Double.parseDouble(arrCommand[8]) : 0.0;
                             double axisZ = (arrCommand.length > 9) ? Double.parseDouble(arrCommand[9]) : 1.0;
                             rotate.setAxis(new Point3D(axisX, axisY, axisZ));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+axisX+" "+axisY+" "+axisZ;
+                            }
                         }
                         
                         hmAnimations.put(animName.toUpperCase(), rotate);
                         
                         if (isOR) {
-                            writeOutput(slot, canonical+" "+animName+" "+nodeName+" "+duration);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -5644,7 +5741,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             String colorNickName = arrCommand[4];
                             if (isOR)
                             {
-                                canonical = canonical+" "+colorNickName;
+                                canonical = canonical+" "+animName+" "+shapeName+" "+duration+" "+colorNickName;
                             }
                             Color fxColor;
                             try {
@@ -5681,15 +5778,23 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (arrCommand.length > 6) {
                             int cycleCount = Integer.parseInt(arrCommand[6]);
                             fill.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[6];
+                            }
                         }
                         if (arrCommand.length > 7) {
                             fill.setAutoReverse(getBooleanValue(arrCommand[7]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[7];
+                            }
                         }
                         
                         hmAnimations.put(animName.toUpperCase(), fill);
                         
                         if (isOR) {
-                            writeOutput(slot, canonical+" "+animName+" "+shapeName+" "+duration);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -5703,6 +5808,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String animName = arrCommand[1];
                         String shapeName = arrCommand[2];
                         double duration = Double.parseDouble(arrCommand[3]);
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName+" "+shapeName+" "+duration;
+                        }
                         
                         // Get the shape
                         Shape shape = hmFXShapes.get(shapeName.toUpperCase());
@@ -5754,15 +5864,26 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (arrCommand.length > 6) {
                             int cycleCount = Integer.parseInt(arrCommand[6]);
                             stroke.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[6];
+                            }
                         }
-                        if (arrCommand.length > 7) {
+                        if (arrCommand.length > 7 && checkBooleanValue(arrCommand[7])) {
                             stroke.setAutoReverse(getBooleanValue(arrCommand[7]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[7];
+                            }
+                        }
+                        else if (arrCommand.length > 7) {
+                            throw new IllegalArgumentException("invalid value for autoReverse argument: ["+arrCommand[7]+"], expected true/false");
                         }
                         
                         hmAnimations.put(animName.toUpperCase(), stroke);
                         
                         if (isOR) {
-                            writeOutput(slot, canonical+" "+animName+" "+shapeName+" "+duration);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -5776,6 +5897,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String animName = arrCommand[1];
                         String nodeName = arrCommand[2];
                         double duration = Double.parseDouble(arrCommand[3]);
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName+" "+nodeName+" "+duration;
+                        }
                         
                         // Get the node (shape or shape3D)
                         Node node = hmFXShapes.get(nodeName.toUpperCase());
@@ -5791,25 +5917,45 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         // Optional parameters
                         if (arrCommand.length > 4) {
                             scale.setByX(Double.parseDouble(arrCommand[4]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[4];
+                            }
                         }
                         if (arrCommand.length > 5) {
                             scale.setByY(Double.parseDouble(arrCommand[5]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[5];
+                            }
                         }
                         if (arrCommand.length > 6) {
                             scale.setByZ(Double.parseDouble(arrCommand[6]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[6];
+                            }
                         }
                         if (arrCommand.length > 7) {
                             int cycleCount = Integer.parseInt(arrCommand[7]);
                             scale.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[7];
+                            }
                         }
                         if (arrCommand.length > 8) {
                             scale.setAutoReverse(getBooleanValue(arrCommand[8]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[8];
+                            }
                         }
                         
                         hmAnimations.put(animName.toUpperCase(), scale);
                         
                         if (isOR) {
-                            writeOutput(slot, canonical+" "+animName+" "+nodeName+" "+duration);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -5823,6 +5969,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String animName = arrCommand[1];
                         String nodeName = arrCommand[2];
                         double duration = Double.parseDouble(arrCommand[3]);
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName+" "+nodeName+" "+duration;
+                        }
                         
                         // Get the node (shape or shape3D)
                         Node node = hmFXShapes.get(nodeName.toUpperCase());
@@ -5838,25 +5989,48 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         // Optional parameters
                         if (arrCommand.length > 4) {
                             translate.setByX(Double.parseDouble(arrCommand[4]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[4];
+                            }
                         }
                         if (arrCommand.length > 5) {
                             translate.setByY(Double.parseDouble(arrCommand[5]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[5];
+                            }
                         }
                         if (arrCommand.length > 6) {
                             translate.setByZ(Double.parseDouble(arrCommand[6]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[6];
+                            }
                         }
                         if (arrCommand.length > 7) {
                             int cycleCount = Integer.parseInt(arrCommand[7]);
                             translate.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[7];
+                            }
                         }
-                        if (arrCommand.length > 8) {
+                        if (arrCommand.length > 8 && checkBooleanValue(arrCommand[8])) {
                             translate.setAutoReverse(getBooleanValue(arrCommand[8]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[8];
+                            }
+                        }
+                        else if (arrCommand.length > 8) {
+                            throw new IllegalArgumentException("invalid value for autoReverse argument: ["+arrCommand[8]+"], expected true/false");
                         }
                         
                         hmAnimations.put(animName.toUpperCase(), translate);
                         
                         if (isOR) {
-                            writeOutput(slot, canonical+" "+animName+" "+nodeName+" "+duration);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -5871,6 +6045,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String nodeName = arrCommand[2];
                         double duration = Double.parseDouble(arrCommand[3]);
                         String pathName = arrCommand[4];
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName+" "+nodeName+" "+duration+" "+pathName;
+                        }
                         
                         // Get the node (shape or shape3D)
                         Node node = hmFXShapes.get(nodeName.toUpperCase());
@@ -5892,15 +6071,26 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (arrCommand.length > 5) {
                             int cycleCount = Integer.parseInt(arrCommand[5]);
                             pathT.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[5];
+                            }
                         }
-                        if (arrCommand.length > 6) {
+                        if (arrCommand.length > 6 && checkBooleanValue(arrCommand[6])) {
                             pathT.setAutoReverse(getBooleanValue(arrCommand[6]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[6];
+                            }
+                        }
+                        else if (arrCommand.length > 6) {
+                            throw new IllegalArgumentException("invalid value for autoReverse argument: ["+arrCommand[6]+"], expected true/false");
                         }
 
                         hmAnimations.put(animName.toUpperCase(), pathT);
                         
                         if (isOR) {
-                            writeOutput(slot, canonical+" "+animName+" "+nodeName+" "+duration+" "+pathName);
+                            writeOutput(slot, canonical);
                         }
                         break;
 
@@ -5933,6 +6123,9 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                 try {
                                     int cycleCount = Integer.parseInt(arrCommand[i]);
                                     seqT.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                                    if (isOR) {
+                                        canonical = canonical+" "+arrCommand[i];
+                                    }
                                     continue; // skip to next iteration
                                 } catch (NumberFormatException e) {
                                     // not an integer, treat as animation name
@@ -5945,6 +6138,9 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                     }
                                     boolean autoReverse = getBooleanValue(arrCommand[i]);
                                     seqT.setAutoReverse(autoReverse);
+                                    if (isOR) {
+                                        canonical = canonical+" "+arrCommand[i];
+                                    }
                                     continue; // skip to next iteration
                                 } catch (IllegalArgumentException e) {
                                     // not a boolean, treat as animation name
@@ -5998,6 +6194,9 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                 try {
                                     int cycleCount = Integer.parseInt(arrCommand[i]);
                                     parT.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                                    if (isOR) {
+                                        canonical = canonical+" "+arrCommand[i];
+                                    }
                                     continue; // skip to next iteration
                                 } catch (NumberFormatException e) {
                                     // not an integer, treat as animation name
@@ -6011,6 +6210,9 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                     }
                                     boolean autoReverse = getBooleanValue(arrCommand[i]);
                                     parT.setAutoReverse(autoReverse);
+                                    if (isOR) {
+                                        canonical = canonical+" "+arrCommand[i];
+                                    }
                                     continue; // skip to next iteration
                                 } catch (IllegalArgumentException e) {
                                     // not a boolean, treat as animation name
@@ -6047,6 +6249,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         
                         String pauseName = arrCommand[1];
                         double duration = Double.parseDouble(arrCommand[2]);
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+pauseName+" "+duration;
+                        }
                         
                         PauseTransition pause = new PauseTransition(Duration.millis(duration));
                         
@@ -6054,15 +6261,21 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (arrCommand.length > 3) {
                             int cycleCount = Integer.parseInt(arrCommand[3]);
                             pause.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                            if (isOR) {
+                                canonical = canonical+" "+arrCommand[3];
+                            }
                         }
                         if (arrCommand.length > 4) {
                             pause.setAutoReverse(getBooleanValue(arrCommand[4]));
+                            if (isOR) {
+                                canonical = canonical+" "+arrCommand[4];
+                            }
                         }
                         
                         hmAnimations.put(pauseName.toUpperCase(), pause);
                         
                         if (isOR) {
-                            writeOutput(slot, canonical+" "+pauseName+" "+duration);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -6076,6 +6289,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String timelineName = arrCommand[1];
                         String ucTimelineName = timelineName.toUpperCase();
 
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+timelineName;
+                        }
+
                         Timeline timeline = hmTimelines.get(ucTimelineName);
                         if (timeline == null)
                         {
@@ -6087,6 +6305,9 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         {
                             int cycleCount = Integer.parseInt(arrCommand[2]);
                             timeline.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                            if (isOR) {
+                                canonical = canonical+" "+arrCommand[2];
+                            }
                         }
 
                         if (arrCommand.length > 3)
@@ -6096,6 +6317,9 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                                 throw new IllegalArgumentException("invalid value for autoReverse argument: ["+arrCommand[3]+"], expected true/false");
                             }
                             timeline.setAutoReverse(getBooleanValue(arrCommand[3]));
+                            if (isOR) {
+                                canonical = canonical+" "+arrCommand[3];
+                            }
                         }
 
                         hmAnimations.put(ucTimelineName, timeline);
@@ -6103,7 +6327,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (isOR)
                         {
-                            writeOutput(slot, canonical+" "+timelineName);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -6154,6 +6378,10 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             {
                                 throw new IllegalArgumentException("no keyValue with name \""+keyValueName+"\" found");
                             }
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+timelineName+" "+timeMs+" "+keyValueName;
+                            }
                         }
                         else
                         {
@@ -6161,6 +6389,10 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                             String targetToken = arrCommand[4];
                             String interpolatorToken = arrCommand.length == 6 ? arrCommand[5] : null;
                             keyValue = createKeyValueFromTokens(slot, propertyToken, targetToken, interpolatorToken);
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+timelineName+" "+timeMs+" "+propertyToken+" "+targetToken + (interpolatorToken!=null ? " "+interpolatorToken : "");
+                            }
                         }
 
                         KeyFrame keyFrame = new KeyFrame(Duration.millis(timeMs), keyValue);
@@ -6170,7 +6402,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (isOR)
                         {
-                            writeOutput(slot, canonical+" "+timelineName+" "+timeMs);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -6189,6 +6421,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (anim == null)
                         {
                             throw new IllegalArgumentException("no animation with name \""+animName+"\" found");
+                        }
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName+" "+interpolatorToken;
                         }
 
                         Interpolator interpolator = resolveInterpolator(interpolatorToken);
@@ -6240,7 +6477,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
                         if (isOR)
                         {
-                            writeOutput(slot, canonical+" "+animName+" "+interpolatorToken);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -6309,7 +6546,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         break;
                     }
-
                 case ANIMATION_STATUS:  // "animationStatus animName" returns status
                     {
                         if (arrCommand.length != 2)
@@ -7032,6 +7268,27 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
             if (value.charAt(end)==' ') break;    // arrived at a trailing blank
         }
         return value.substring(start,end);  // return digits only so Integer.parseInt() does not barf
+    }
+
+    /** Returns a Rexx string literal for canonical command output. */
+    static String toRexxStringLiteral(String value)
+    {
+        return "\"" + value.replace("\"", "\"\"") + "\"";
+    }
+
+    /** Removes surrounding Rexx string-literal quotes from a token, if present. */
+    static String fromRexxStringLiteral(String value)
+    {
+        if (value!=null && value.length()>=2)
+        {
+            char quote=value.charAt(0);
+            if ((quote=='"' || quote=='\'') && value.charAt(value.length()-1)==quote)
+            {
+                String doubled = "" + quote + quote;
+                return value.substring(1, value.length()-1).replace(doubled, "" + quote);
+            }
+        }
+        return value;
     }
 
         // create an ooRexx like array expression
