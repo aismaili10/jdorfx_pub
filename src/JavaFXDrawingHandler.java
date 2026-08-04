@@ -1994,7 +1994,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                 case STROKE:        // "stroke [strokeNickName [width [cap join [miterlimit [floatDashArray floatDash] ]]]" query or set stroke
                     {
                     int argNum=arrCommand.length;
-                    if (argNum==4 || argNum>8)
+                    if (argNum==4 || argNum==6 || argNum>8) // command length of 6 not allowed
                     {
                         throw new IllegalArgumentException("this command needs either no, 2 (strokeNickName width), 4 (strokeNickName width cap join), or 6 arguments (strokeNickName width cap join miterlimit arrDashes dashPhase), received "+(argNum-1)+" instead");
                     }
@@ -3955,6 +3955,131 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                     return resultValue;
                 }
 
+                case CULL_FACE:             // "cullFace shapeName [NONE|BACK|FRONT]"
+                    {
+                    if (arrCommand.length!=2 && arrCommand.length!=3)
+                    {
+                        throw new IllegalArgumentException("this command needs exactly 1 or 2 arguments (shapeNickName [NONE|BACK|FRONT]), received "+(arrCommand.length-1)+" instead");
+                    }
+                    String nickName=arrCommand[1];
+                    Shape3D shape3D=hm3DShapes.get(nickName.toUpperCase());
+                    if (shape3D==null)
+                    {
+                        throw new IllegalArgumentException("no 3D shape with name \""+nickName+"\" stored");
+                    }
+                    CullFace previous=shape3D.getCullFace();
+                    if (arrCommand.length==3)
+                    {
+                        try
+                        {
+                            shape3D.setCullFace(CullFace.valueOf(arrCommand[2].toUpperCase()));
+                        }
+                        catch (IllegalArgumentException e)
+                        {
+                            throw new IllegalArgumentException("invalid cull face ["+arrCommand[2]+"], expected NONE, BACK or FRONT");
+                        }
+                    }
+                    if (isOR)
+                    {
+                        writeOutput(slot, canonical+" "+nickName+(arrCommand.length==3 ? " "+shape3D.getCullFace().name() : ""));
+                    }
+                    return previous.name();
+                    }
+
+                case ROTATE_CAMERA:
+                    {
+                    if (arrCommand.length!=9)
+                    {
+                        throw new IllegalArgumentException("this command needs exactly 8 arguments (name angle pivotX pivotY pivotZ axisX axisY axisZ), received "+(arrCommand.length-1)+" instead");
+                    }
+                    String nickName=arrCommand[1];
+                    Node node = hmCamera.get(nickName.toUpperCase());
+                    if (node==null)
+                    {
+                        throw new IllegalArgumentException("no "+"camera" +" with name \""+nickName+"\" stored");
+                    }
+                    double angle=Double.parseDouble(arrCommand[2]);
+                    double pivotX=Double.parseDouble(arrCommand[3]);
+                    double pivotY=Double.parseDouble(arrCommand[4]);
+                    double pivotZ=Double.parseDouble(arrCommand[5]);
+                    double axisX=Double.parseDouble(arrCommand[6]);
+                    double axisY=Double.parseDouble(arrCommand[7]);
+                    double axisZ=Double.parseDouble(arrCommand[8]);
+                    Affine affine=new Affine();
+                    affine.appendRotation(angle,pivotX,pivotY,pivotZ,axisX,axisY,axisZ);
+                    node.getTransforms().add(affine);
+                    if (isOR) writeOutput(slot, canonical+" "+nickName+" "+angle+" "+pivotX+" "+pivotY+" "+pivotZ+" "+axisX+" "+axisY+" "+axisZ);
+                    return resultValue;
+                    }
+
+                case TRANSLATE_CAMERA:
+                case TRANSLATE_POINT_LIGHT:
+                    {
+                    if (arrCommand.length!=5)
+                    {
+                        throw new IllegalArgumentException("this command needs exactly 4 arguments (name tx ty tz), received "+(arrCommand.length-1)+" instead");
+                    }
+                    String nickName=arrCommand[1];
+                    Node node=cmd==EnumCommand.TRANSLATE_CAMERA ? hmCamera.get(nickName.toUpperCase()) : hmLightBase.get(nickName.toUpperCase());
+                    if (node==null || (cmd==EnumCommand.TRANSLATE_POINT_LIGHT && !(node instanceof PointLight)))
+                    {
+                        throw new IllegalArgumentException("no "+(cmd==EnumCommand.TRANSLATE_CAMERA ? "camera" : "PointLight")+" with name \""+nickName+"\" stored");
+                    }
+                    double tx=Double.parseDouble(arrCommand[2]);
+                    double ty=Double.parseDouble(arrCommand[3]);
+                    double tz=Double.parseDouble(arrCommand[4]);
+                    Affine affine=new Affine();
+                    affine.appendTranslation(tx,ty,tz);
+                    node.getTransforms().add(affine);
+                    if (isOR) writeOutput(slot, canonical+" "+nickName+" "+tx+" "+ty+" "+tz);
+                    return resultValue;
+                    }
+
+                case CAMERA_NEAR_CLIP:
+                case CAMERA_FAR_CLIP:
+                    {
+                    if (arrCommand.length!=2 && arrCommand.length!=3)
+                    {
+                        throw new IllegalArgumentException("this command needs exactly 1 or 2 arguments (cameraName [distance]), received "+(arrCommand.length-1)+" instead");
+                    }
+                    String nickName=arrCommand[1];
+                    Camera camera=hmCamera.get(nickName.toUpperCase());
+                    if (camera==null)
+                    {
+                        throw new IllegalArgumentException("no camera with name \""+nickName+"\" stored");
+                    }
+                    boolean near=cmd==EnumCommand.CAMERA_NEAR_CLIP;
+                    double previous=near ? camera.getNearClip() : camera.getFarClip();
+                    if (arrCommand.length==3)
+                    {
+                        double distance=Double.parseDouble(arrCommand[2]);
+                        if (!Double.isFinite(distance) || distance<=0)
+                            throw new IllegalArgumentException("clip distance must be a finite number greater than zero");
+                        if (near && distance>=camera.getFarClip()) {
+                            throw new IllegalArgumentException("nearClip must be less than farClip ("+camera.getFarClip()+")");
+                        }
+                        if (!near && distance<=camera.getNearClip())
+                            throw new IllegalArgumentException("farClip must be greater than nearClip ("+camera.getNearClip()+")");
+                        if (near) {
+                            System.out.println("Setting near clip to: " + distance);
+                            camera.setNearClip(distance);
+                        }
+                        else {
+                            System.out.println("Setting far clip to: " + distance);
+                            camera.setFarClip(distance);
+                        }
+                        System.out.println("Near clip: " + camera.getNearClip());
+                        System.out.println("Far clip: " + camera.getFarClip());
+                        System.out.println("Is fixed eye at camera zero: " + ((PerspectiveCamera)camera).isFixedEyeAtCameraZero());
+                    }
+                    if (isOR)
+                    {
+                        writeOutput(slot, canonical+" "+nickName+(arrCommand.length==3 ? " "+(near ? camera.getNearClip() : camera.getFarClip()) : ""));
+                    }
+                    setChangeSceneTrue();
+                    return previous;
+                    }
+
                 // "camera name [type args...]"
                 case CAMERA:
                     {
@@ -5613,10 +5738,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         
                         // Get the node (shape or shape3D)
-                        Node node = hmFXShapes.get(nodeName.toUpperCase());
-                        if (node == null) {
-                            node = hm3DShapes.get(nodeName.toUpperCase());
-                        }
+                        Node node = resolveNamedAnimationNode(nodeName);
                         if (node == null) {
                             throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
                         }
@@ -5626,22 +5748,38 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         // Optional parameters
                         if (arrCommand.length > 4) {
                             fade.setFromValue(Double.parseDouble(arrCommand[4]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[4];
+                            }
                         }
                         if (arrCommand.length > 5) {
                             fade.setToValue(Double.parseDouble(arrCommand[5]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[5];
+                            }
                         }
                         if (arrCommand.length > 6) {
                             int cycleCount = Integer.parseInt(arrCommand[6]);
                             fade.setCycleCount(cycleCount == -1 ? Timeline.INDEFINITE : cycleCount);
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[6];
+                            }
                         }
                         if (arrCommand.length > 7) {
                             fade.setAutoReverse(getBooleanValue(arrCommand[7]));
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+arrCommand[7];
+                            }
                         }
                         
                         hmAnimations.put(animName.toUpperCase(), fade);
                         
                         if (isOR) {
-                            writeOutput(slot, canonical+" "+animName+" "+nodeName+" "+duration);
+                            writeOutput(slot, canonical);
                         }
                         break;
                     }
@@ -5659,10 +5797,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         double duration = Double.parseDouble(arrCommand[3]);
 
                         // Get the node (shape or shape3D)
-                        Node node = hmFXShapes.get(nodeName.toUpperCase());
-                        if (node == null) {
-                            node = hm3DShapes.get(nodeName.toUpperCase());
-                        }
+                        Node node = resolveNamedAnimationNode(nodeName);
                         if (node == null) {
                             throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
                         }
@@ -5904,10 +6039,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         
                         // Get the node (shape or shape3D)
-                        Node node = hmFXShapes.get(nodeName.toUpperCase());
-                        if (node == null) {
-                            node = hm3DShapes.get(nodeName.toUpperCase());
-                        }
+                        Node node = resolveNamedAnimationNode(nodeName);
                         if (node == null) {
                             throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
                         }
@@ -5976,10 +6108,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         
                         // Get the node (shape or shape3D)
-                        Node node = hmFXShapes.get(nodeName.toUpperCase());
-                        if (node == null) {
-                            node = hm3DShapes.get(nodeName.toUpperCase());
-                        }
+                        Node node = resolveNamedAnimationNode(nodeName);
                         if (node == null) {
                             throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
                         }
@@ -6052,10 +6181,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         
                         // Get the node (shape or shape3D)
-                        Node node = hmFXShapes.get(nodeName.toUpperCase());
-                        if (node == null) {
-                            node = hm3DShapes.get(nodeName.toUpperCase());
-                        }
+                        Node node = resolveNamedAnimationNode(nodeName);
                         if (node == null) {
                             throw new IllegalArgumentException("no node with name \""+nodeName+"\" found");
                         }
@@ -6105,9 +6231,15 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String animName = arrCommand[1];
                         String nodeOrAnim = arrCommand[2];
 
-                        Node node = hmFXShapes.get(nodeOrAnim.toUpperCase());
-                        if (node == null) {
-                            node = hm3DShapes.get(nodeOrAnim.toUpperCase());
+                        Node node = resolveNamedAnimationNode(nodeOrAnim);
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName;
+                            if (node != null)
+                            {
+                                canonical = canonical+" "+nodeOrAnim;
+                            }
                         }
 
                         int endIndex = 0;
@@ -6178,9 +6310,15 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         String animName = arrCommand[1];
                         String nodeOrAnim = arrCommand[2];
 
-                        Node node = hmFXShapes.get(nodeOrAnim.toUpperCase());
-                        if (node == null) {
-                            node = hm3DShapes.get(nodeOrAnim.toUpperCase());
+                        Node node = resolveNamedAnimationNode(nodeOrAnim);
+
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+animName;
+                            if (node != null)
+                            {
+                                canonical = canonical+" "+nodeOrAnim;
+                            }
                         }
 
                         // If token refers to a node, the child animations start at index 3
@@ -6751,6 +6889,14 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
             {
                 node = hm3DShapes.get(nodeName.toUpperCase());
             }
+            if (node == null)
+            {
+                node = hmCamera.get(nodeName.toUpperCase());
+            }
+            if (node == null)
+            {
+                node = hmLightBase.get(nodeName.toUpperCase());
+            }
             if (node != null)
             {
                 return node;
@@ -6781,6 +6927,17 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
             return hm3DShapes.values().iterator().next();
         }
         return null;
+    }
+
+    /** Resolves every named JavaFX Node registry accepted by node-based animations. */
+    private Node resolveNamedAnimationNode(String nodeName)
+    {
+        String key=nodeName.toUpperCase();
+        Node node=hmFXShapes.get(key);
+        if (node==null) node=hm3DShapes.get(key);
+        if (node==null) node=hmCamera.get(key);
+        if (node==null) node=hmLightBase.get(key);
+        return node;
     }
 
     private String normalizePropertyName(String propertyToken)
@@ -7508,6 +7665,14 @@ enum EnumCommand {
     MAP                         ( "map"                      ) ,    //   "map mapPath [args...]" create map
     MATERIAL_MAP                ( "materialMap"              ) ,    //   "material materialName type mapPath/mapName" set map of named material
     SET_MATERIAL                ( "setMaterial"              ) ,    //   "setMaterial shape3DName materialName" set material to 3D shape
+    
+    // 2026-08-04
+    CULL_FACE                   ( "cullFace"                 ) ,    //   "cullFace shapeName [NONE|BACK|FRONT]" query or set face culling
+    ROTATE_CAMERA               ( "rotateCamera"             ) ,    //   same arguments as rotate3DShape
+    TRANSLATE_CAMERA            ( "translateCamera"          ) ,    //   same arguments as translate3DShape
+    CAMERA_NEAR_CLIP            ( "cameraNearClip"           ) ,    //   "cameraNearClip name [distance]"
+    CAMERA_FAR_CLIP             ( "cameraFarClip"            ) ,    //   "cameraFarClip name [distance]"
+    TRANSLATE_POINT_LIGHT       ( "translatePointLight"      ) ,    //   same arguments as translate3DShape
 
     // Animation commands
     ANIMATION_FADE              ( "animationFade"            ) ,    //   "animationFade animName nodeName duration [fromValue] [toValue] [cycleCount] [autoReverse]"
