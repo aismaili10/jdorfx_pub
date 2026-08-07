@@ -44,4 +44,4 @@ change.
 
 ## License
 
-See [LICENSE](LICENSE).
+See [LICENSE](src/licence%20JDORFX.txt).
