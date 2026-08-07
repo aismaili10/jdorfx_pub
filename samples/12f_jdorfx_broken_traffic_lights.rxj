@@ -22,7 +22,7 @@
 
 /* ========================================================================
    JDORFX Animation Example: Traffic Light Simulation
-    - Simulates a brokentraffic light changing colors with fade effect
+    - Simulates a broken traffic light changing colors with fade effect
    ======================================================================== */
 
 -- create JDORFX handler

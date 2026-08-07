@@ -23,7 +23,7 @@
 /* ========================================================================
    JDORFX Animation Example: Path Animation: Lunar eclipse
         - Note: hardcoded eclipse windows and material changes for simplicity
-            - actual occlusion (pysical shadowing) is not part of
+            - actual occlusion (physical shadowing) is not part of
               JDORFX currently
    ======================================================================== */
 
@@ -95,13 +95,12 @@ animationRotate rotateAnim earth 4000 360 "-1" .false 0 1 0
 -- play animation
 animationPlay pathAnim
 animationPlay rotateAnim
-animationPlay pathAnim2
 
 -- create perspective camera and add to scene
 camera camera perspective 0 0 0
 setcamera camera
 
-light light1 point sun_x + 80 sun_y sun_z white -- at sun center
+light light1 point sun_x + 80 sun_y sun_z white -- offset from the Sun's center
 setLight light1
 
 winShow

@@ -67,8 +67,8 @@ setmaterial sphere tiles
 -- setmaterial sphere matOrange
 
 color red
-shape elipse ELLI 200 450 100 50
-fillShape elipse
+shape ellipse ELLI 200 450 100 50
+fillShape ellipse
 
 color blue
 shape rectangle RECT 400 450 100 100
@@ -84,7 +84,7 @@ fillshape myPolygon
 animationRotate rotateAnim1 rockBox 3000 360 "-1" .false 1 1 1
 animationRotate rotateAnim2 cylinder 2000 360 "-1" .false 1 1 1
 animationRotate rotateAnim3 sphere 1000 360 "-1" .false 1 1 1
-animationRotate rotateAnim4 elipse 3000 360 "-1" .false 1 1 1
+animationRotate rotateAnim4 ellipse 3000 360 "-1" .false 1 1 1
 animationRotate rotateAnim5 rectangle 2000 360 "-1" .false 1 1 1
 animationRotate rotateAnim6 myPolygon 1000 360 "-1" .false 1 1 1
 
@@ -104,7 +104,7 @@ winShow
 
 -- array with objects to rotate
 objects = .Array~of("rockBox", "cylinder", "sphere", ,
-                    "elipse", "rectangle", "myPolygon")
+                    "ellipse", "rectangle", "myPolygon")
 
 do i = 1 to 6
     say "Rotating object:" objects[i]

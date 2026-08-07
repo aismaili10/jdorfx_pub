@@ -90,14 +90,12 @@ setLight sunLight
 winshow
 
 animationPlay moonTimeline
-animationPlay sunTimeline
 
 say "Timeline demo is running..."
 say "Press Enter to stop animation and exit..."
 pull .
 
 animationStop moonTimeline
-animationStop sunTimeline
 
 winClose
 

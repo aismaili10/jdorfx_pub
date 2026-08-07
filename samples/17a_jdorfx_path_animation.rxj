@@ -89,12 +89,12 @@ setcamera camera
 
 winShow
 
-say "Box translating ..."
+say "Earth orbit animation is running ..."
 say "Press Enter to exit..."
 pull .
 
-animationsStop pathAnim
-animationsStop rotateAnim
+animationStop pathAnim
+animationStop rotateAnim
 
 say "Animation completed!"
 
