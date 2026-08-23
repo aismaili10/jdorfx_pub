@@ -29,7 +29,7 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-useRedirection? = .false
+useRedirection? = arg()>0  -- if any command line argument given, use redirection
 if useRedirection? then
     address jdorfx with output using (.stdout) error using (.stderr)
 else

@@ -40,7 +40,7 @@
 -- Set either flag to .true to enable the corresponding external operation.
 runClipboardDemo = .false
 runPrinterDemo   = .false -- dflt printer must be set
-useRedirection?  = .false
+useRedirection?  = arg()>0  -- if any command line argument given, use redirection
 
 -- if command-line arguments, then a) use redirection, and b) process arguments
 parse upper arg opt1 opt2 .
