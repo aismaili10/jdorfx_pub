@@ -1,0 +1,1430 @@
+
+<!-- saved from url=(0060)https://wi.wu.ac.at/rgf/rexx/misc/jdorfx_doc.tmp/jdorfx_doc.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>JDORFX Synopsis</title>
+
+    <style>
+    /* --- definition list----------------------- */
+    dl {
+          width: 90%;
+          display: inline-table;
+          break-before: avoid-page;
+          break-inside: avoid;
+          padding: 0;
+          margin: 5px;
+       }
+
+    dt {
+          border-top: 1px dotted SaddleBrown;
+          float: left;
+          width: 20%;
+          font-weight: bold;
+          font-style: italic;
+          background: WhiteSmoke;
+          padding: 0;
+          margin: 0;
+       }
+
+    dt::after {
+          content: ':';
+      }
+
+    dt.heading {
+          border-top: 0;
+          float: left;
+          width: 100%;
+          background: none;
+          font-size: 120%;
+          font-style: normal;
+          font-weight: bold;
+       }
+
+    dt.heading::after {
+          content: '';
+      }
+
+
+    dd {
+          border-top: 1px dotted SaddleBrown;
+          float: left;
+          width: 80%;
+          background: WhiteSmoke;
+          padding: 0;
+          margin: 0;
+       }
+
+    dd:not(:last-of-type) {
+          padding-bottom: 0.5em;
+       }
+
+
+    /* --- table -------------------------------- */
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        counter-reset: command-count;
+    }
+
+    th, td {
+       border: 1px solid SaddleBrown;
+       padding: 3px;
+    }
+
+    th {
+       background-color: BurlyWood ;
+    }
+
+    tr:hover {
+       background-color: PaleGoldenRod;
+    }
+
+    .command {
+       font-weight: bold;
+       font-family: monospace;
+       font-size: .9rem;
+       vertical-align: text-top;
+    }
+
+    .argument {
+       font-family: monospace;
+       font-style: italic;
+       font-size: .8rem;
+       vertical-align: text-top;
+    }
+
+    .TableHeader {
+       background-color: LemonChiffon;
+    }
+
+    td.cmdNr:first-child::before {
+       content: "("counter(command-count)")";
+    }
+
+    td.cmdNr {
+       font-family:      monospace;
+       font-size:        .9rem;
+       vertical-align:   top;
+       text-align:       center;
+    }
+
+    .CommandRowColumn {
+       background-color: LemonChiffon;
+       counter-increment: command-count;
+    }
+
+
+    tr.ArgumentRowColor {
+        background-color: LightYellow;
+    }
+
+    tr.ArgumentRowColor:hover {
+       background-color: PaleGoldenRod;
+    }
+
+    pre.rexx-sample {
+       background: LemonChiffon;
+       color: #080808;
+       font-family: "IBM Plex Mono", monospace;
+       font-size: 75%;
+    }
+
+    .rexx-keyword {
+       color: #0033b3;
+    }
+
+    .rexx-string {
+       color: #067d17;
+    }
+
+    .rexx-comment {
+       color: #8c8c8c;
+       font-style: italic;
+    }
+
+    .rexx-number {
+       color: #1750eb;
+    }
+
+    .rexx-operator {
+       color: #cc3300;
+    }
+
+    .rexx-constant {
+       color: #000080;
+       font-style: italic;
+    }
+
+    </style>
+</head>
+
+<body>
+<h3 id="purposeOfJDORFX">Purpose of JDORFX (JavaFX Drawing for ooRexx)</h3>
+
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+
+<p>JDORFX (JavaFX drawing for <a href="https://www.oorexx.org/">ooRexx</a>) is a Rexx
+command handler implemented in Java using
+<a href="https://sourceforge.net/projects/bsf4oorexx/">BSF4ooRexx850</a>. It makes
+JavaFX immediate-mode 2D drawing and retained scene-graph functionality,
+including 3D shapes, cameras, lights, materials, images, and animation,
+available through Rexx commands.
+
+</p><p>
+
+</p><p>Example <em>"jdorfx_synopsis_sample.rxj"</em>:
+<pre class="rexx-sample"><span class="rexx-comment">#!/usr/bin/env rexx</span>
+
+<span class="rexx-keyword">call</span> addJdorFXHandler
+
+useRedirection? <span class="rexx-operator">=</span> <span class="rexx-constant">.false</span>
+<span class="rexx-keyword">if</span> useRedirection? <span class="rexx-keyword">then</span>
+    <span class="rexx-keyword">address</span> jdorfx <span class="rexx-keyword">with output using</span> (<span class="rexx-constant">.stdout</span>) <span class="rexx-keyword">error using</span> (<span class="rexx-constant">.stderr</span>)
+<span class="rexx-keyword">else</span>
+    <span class="rexx-keyword">address</span> jdorfx
+
+width <span class="rexx-operator">=</span> <span class="rexx-number">640</span>
+height <span class="rexx-operator">=</span> <span class="rexx-number">360</span>
+newImage width height
+winTitle <span class="rexx-string">"JDORFX Synopsis"</span>
+
+<span class="rexx-comment">-- Draw two lines forming a big X</span>
+drawLine (width <span class="rexx-operator">-</span> <span class="rexx-number">1</span>) (height <span class="rexx-operator">-</span> <span class="rexx-number">1</span>)
+color red
+moveTo (width <span class="rexx-operator">-</span> <span class="rexx-number">1</span>) <span class="rexx-number">0</span>
+position
+<span class="rexx-keyword">say</span> <span class="rexx-string">"--&gt; rc="</span>pp(rc)
+drawLine <span class="rexx-number">0</span> (height <span class="rexx-operator">-</span> <span class="rexx-number">1</span>)
+
+len <span class="rexx-operator">=</span> <span class="rexx-number">50</span>
+moveTo (width <span class="rexx-operator">-</span> len) <span class="rexx-operator">/</span> <span class="rexx-number">2</span> (height <span class="rexx-operator">-</span> len) <span class="rexx-operator">/</span> <span class="rexx-number">2</span>
+color green
+fillRect len len
+stroke str3 <span class="rexx-number">3</span>
+color blue
+drawRect len len
+
+color somePurple <span class="rexx-number">0.498</span> <span class="rexx-number">0.180</span> <span class="rexx-number">0.435</span> <span class="rexx-number">1.0</span>
+color
+<span class="rexx-keyword">say</span> <span class="rexx-string">"--&gt; rc="</span>pp(rc)
+<span class="rexx-keyword">say</span> <span class="rexx-string">"    rc~toString:"</span> pp(rc<span class="rexx-operator">~</span>toString)
+moveTo <span class="rexx-number">218</span> <span class="rexx-number">320</span>
+drawString <span class="rexx-string">"Hello, Rexx world ... from JDORFX"</span>
+
+<span class="rexx-comment">-- Static JavaFX 3D scene-graph objects</span>
+shape3d ball sphere <span class="rexx-number">130 110 0 45</span>
+shape3d cube box <span class="rexx-number">320 105 0 80 80 80</span>
+shape3d column cylinder <span class="rexx-number">510 110 0 35 100</span>
+rotate3dshape cube <span class="rexx-number">25 320 105 0 0 1 0</span>
+rotate3dshape cube (<span class="rexx-operator">-</span><span class="rexx-number">15</span>) <span class="rexx-number">320 105 0 1 0 0</span>
+fill3dshape ball
+fill3dshape cube
+fill3dshape column
+material ballMaterial orange
+material cubeMaterial mediumseagreen
+material columnMaterial cornflowerblue
+setMaterial ball ballMaterial
+setMaterial cube cubeMaterial
+setMaterial column columnMaterial
+
+winShow
+<span class="rexx-keyword">say</span> <span class="rexx-string">"Press Enter to close."</span>
+<span class="rexx-keyword">if</span> useRedirection? <span class="rexx-keyword">then</span>
+    sleep <span class="rexx-number">5</span>
+<span class="rexx-keyword">else</span>
+    <span class="rexx-keyword">pull</span> <span class="rexx-constant">.</span>
+winClose
+
+<span class="rexx-keyword">::requires</span> <span class="rexx-string">"../samples/jdorfx.cls"</span>
+</pre>
+
+<p>The program prints output like the following (the Java object identity may
+vary):</p>
+<pre style="background: LemonChiffon; font-family: 'IBM Plex Mono', monospace">--&gt; rc=[639 0]
+--&gt; rc=[javafx.scene.paint.Color@<em>4501b7af</em>]
+    rc~toString: [0x7f2e6fff]</pre>
+
+<p>It displays this JavaFX window:</p>
+<center><img src="jdorfx-synopsis.png" border="1px"
+alt="JDORFX synopsis window with immediate-mode 2D drawing and retained 3D shapes"></center>
+
+
+<p></p><hr><p>
+
+</p><h3 id="briefOverview">Brief Overview</h3>
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+
+<p>The <em>JDORFX</em> Rexx command handler exposes two complementary JavaFX
+drawing models:</p>
+<ul>
+  <li><strong>Immediate-mode 2D drawing</strong> uses a JavaFX
+  <code>GraphicsContext</code> attached to a <code>Canvas</code>. Commands such as
+  <code>drawLine</code>, <code>fillRect</code>, and <code>drawString</code> change
+  pixels on that canvas.</li>
+  <li><strong>Retained scene-graph drawing</strong> creates named JavaFX
+  <code>Shape</code>, <code>Shape3D</code>, camera, and light nodes. These objects
+  remain addressable and can be transformed, assigned materials, and animated.</li>
+</ul>
+
+<p>JDORFX preserves much of the command interface of
+<a href="https://wi.wu.ac.at/rgf/rexx/misc/jdor_doc.tmp/jdor_doc.html">JDOR</a>,
+but implements it with JavaFX rather than Java AWT/Java2D. One compatibility
+convention is the <em>current position</em>: <code>moveTo x y</code> stores a
+position in the handler, and immediate-mode commands such as
+<code>drawRect width height</code> and <code>drawString text</code> draw from that
+stored position. Their command signatures therefore omit the leading
+<em>x</em> and <em>y</em> parameters found in the corresponding JavaFX
+<code>GraphicsContext</code> methods.</p>
+
+<p>The principal differences from JDOR are the JavaFX object types and rendering
+model. JDOR draws through Java2D and uses AWT objects such as
+<code>Graphics2D</code>, <code>Color</code>, and <code>BufferedImage</code>. JDORFX
+draws its immediate-mode content through JavaFX <code>Canvas</code> and
+<code>GraphicsContext</code>, and adds retained nodes, 3D, cameras, lights,
+Phong materials, and JavaFX animation. Image-query and clipboard commands
+convert results to <code>BufferedImage</code> only where JDOR compatibility
+requires Java interoperation.</p>
+
+<p><em>Hint:</em> using the redirection option of the Rexx <em>ADDRESS</em> keyword instruction
+       (i.e., its <em>WITH</em> subkeyword with the redirection definitions) has the following effects:
+</p><ul>
+    <li>redirecting <em>INPUT</em>: all commands are taken and processed from the redirected
+        input, e.g., from the <em>.input</em> monitor (defaults to the <em>.stdin</em> stream):
+
+        <br><em>Hint</em>: to activate input redirection for JDORFX commands to be executed one
+        can redirect like this:
+
+        <pre>ADDRESS JDORFX WITH input using (stemOrStreamOrArray)   /* activate input redirection  */ </pre>
+
+        <em>Note:</em> you need to supply at least one command (e.g. a comment command like
+        <code><em>"-- some comment"</em></code>) to the command handler
+        such that it gets invoked and becomes able to note that input is redirected, such
+        that it takes the commands from the redirected input.
+
+    </li><li>redirecting <em>OUTPUT</em>: processed commands are put into the output target
+        in canonical form. The output can normally be replayed through redirected
+        <em>INPUT</em>. A redirecting handler can only record commands it receives;
+        ordinary Rexx assignments and an unrecorded Java <code>KeyValue[]</code>
+        expression cannot be reconstructed automatically.
+
+        <br>In the case that an error or failure is caused by a command it will be put into
+        a comment with information about the error or failure (in this case supplying more
+        detailed information, like the exact location).
+
+        <br><em>Hint</em>: to activate output of executed JDORFX commands in canonical form
+        one can redirect like this (the <em>.output</em> monitor defaults to the <em>.stdout</em>
+        stream, you could also use a <em>stem</em>, a <em>stream</em> (file) or any ordered
+        collection like an <em>array</em> instead):
+
+        <pre>ADDRESS JDORFX WITH output using (.output) /* activate output redirection */ </pre>
+
+    </li><li>redirecting <em>ERROR</em>: all commands causing an error or failure condition are
+        supplied together with the kind of error or failure. In the case of a failure more
+        detailed information gets supplied, like the exact location.
+        <br><em>Hint</em>: while developing or changing <em>JDORFX</em> programs one can get
+        the detailed error and failure information by redirecting like this (the <em>.error</em>
+        monitor defaults to the <em>.stderr</em> stream, you could also use a <em>stem</em>, a
+        <em>stream</em> (file) or any ordered collection like an <em>array</em> instead):
+
+        <pre>ADDRESS JDORFX WITH error using (.error)   /* activate error redirection  */ </pre>
+
+        In addition ooRexx
+        will communicate the result of executing a command by setting the environment
+        symbol <em>.RS</em> (value <em>0</em> indicates successful completion, <em>-1</em>
+        indicates a failure and <em>1</em> indicates an error).
+        <br>Once all errors and failures got fixed, the production code may then remove
+        error redirection by changing the above redirection statement to:
+        <pre>ADDRESS&nbsp;JDORFX /* all unqualified commands should go to this handler */</pre></li></ul>
+
+<p>The <em>ADDRESS</em> keyword instruction is documented in the ooRexx reference book
+(<em>rexxref.pdf</em>) in <em>"Chapter 2.  Keyword Instructions"</em>, section <em>"2.1 ADDRESS"</em>).
+
+
+</p><p>The following related material may be helpful:
+</p><ul>
+    <li><a href="https://wi.wu.ac.at/rgf/rexx/misc/jdor_doc.tmp/jdor_doc.html">JDOR Synopsis</a>,
+    documenting the Java2D-based predecessor and compatibility interface.</li>
+    <li><a href="https://docs.oracle.com/javase/8/javafx/api/index.html">JavaFX API documentation</a>.</li>
+    <li><a href="https://docs.oracle.com/javase/8/javafx/graphics-tutorial/">JavaFX graphics tutorial</a>.</li>
+</ul>
+
+<p></p><hr><p>
+
+
+<!--
+<h3>Some (Informally Defined) Terms</h3>
+unfortunately, Firefox would do a page break when printing such that the terms
+start on the next page, no matter how much space is available; hence moving the
+title to the definition list
+-->
+
+
+</p><dl>
+
+    <dt class="heading">Some Terms and their Informal Definition<br>&nbsp;</dt>
+
+    <dt id="dtAffineTransform">Affine</dt>
+    <dd>The JavaFX class <em>javafx.scene.transform.Affine</em> represents
+        translation, scale, shear, and rotation in a matrix. JavaFX
+        <em>GraphicsContext</em> methods apply its current transform to
+        immediate-mode Canvas drawing.
+        <br>The commands
+        <em><a href="#cmdTranslate">translate</a></em>,
+        <em><a href="#cmdScale">scale</a></em>,
+        <em><a href="#cmdShear">shear</a></em>
+        append the respective operations to the current transform.
+
+        <br>The <em><a href="#cmdTransform">transform</a></em> command allows to interact with
+        a JavaFX <em>Affine</em> to query, set, register, retrieve, or reset the
+        six transform factors <em>translateX</em>, <em>translateY</em>,
+        <em>scaleX</em>, <em>scaleY</em>, <em>shearX</em>, <em>shearY</em> directly.
+    </dd>
+
+    <dt>Canvas/immediate-mode 2D coordinate system</dt>
+    <dd>The two-dimensional coordinate system used by drawing commands operating on the
+        JavaFX <em>Canvas</em>. Before transforms are applied, its origin
+        (<em>x=0</em>, <em>y=0</em>) is at the upper-left corner. Increasing <em>x</em>
+        moves to the <em>right</em> along the <em>x-axis</em>, and increasing <em>y</em>
+        moves downward along the <em>y-axis</em>. Coordinates are JavaFX drawing-space
+        values and need not denote integer pixel positions.
+    </dd>
+
+    <dt>"comment command"</dt>
+    <dd>Sometimes it is desired to turn a command (maybe temporarily) into a comment, such that it
+        does not get executed. <em>JDORFX</em> treats all commands as comments that start with
+        any of the following characters:
+        <code>-</code> (dash),
+        <code>;</code> (semi colon),
+        <code>/</code> (slash),
+        <code>"</code> (double quote),
+        <code>'</code> (single quote),
+        <code>.</code> (dot),
+        <code>:</code> (colon),
+        <code>!</code> (exclamation mark),
+        <code>?</code> (question mark),
+        <code>_</code> (underscore). Therefore it is sufficient to prefix a command with one
+        of these characters in order to turn it into "comment command".
+        <br>If the output is redirected comment commands will be passed on to it.
+    </dd>
+
+    <dt>currX, currY</dt>
+    <dd><em>currX</em> and <em>currY</em> denote the current position of the starting
+    (upper left hand) point used when clearing, drawing or filling. It can be set with
+    the <a href="#cmdMoveTo"><em>goto x y</em></a> command (alias names for this command are
+    <a href="#cmdMoveTo"><em>location&nbsp;x&nbsp;y</em></a>,
+    <a href="#cmdMoveTo"><em>moveTo&nbsp;x&nbsp;y</em></a>,
+    <a href="#cmdMoveTo"><em>pos&nbsp;x&nbsp;y</em></a> and
+    <a href="#cmdMoveTo"><em>position&nbsp;x&nbsp;y</em></a>).
+    JDORFX supplies <em>currX</em> and <em>currY</em> to immediate-mode JavaFX
+    <em>GraphicsContext</em> operations whose command interface omits x and y.
+    </dd>
+
+    <dt>clip</dt>
+    <dd>A JavaFX scene-graph node used to restrict rendering. The implemented
+        <a href="#cmdClipShape"><em>clipShape</em></a> command sets a named Shape
+        as the root clip; the inherited rectangular <em>clip</em> command is not implemented.</dd>
+
+    <dt id="dtDashArray">dashArray</dt>
+    <dd>The command <em><a href="#cmdStroke">stroke</a></em> allows for an argument <em>dashArray</em> that
+        represents an array of float values.
+        There are two possibilities to supply this array to the command:
+        <ul>
+            <li>either as a string consisting of a comma separated list of numbers in parentheses
+                (must be quoted to form a valid Rexx string and must not contain whitespace)
+                e.g.: <em>"(1,3,1,3)"</em>
+
+            </li><li>or passing a Rexx variable that refers to the appropriate Java array e.g.:
+                <br><em>dashArray=bsf.createJavaArrayOf("float.class", 1, 3, 1, 3)</em>
+                and then submitting the quoted name of the Rexx variable, e.g., <em>"dashArray"</em>,
+                as array argument; the command handler will then fetch the array from the Rexx variable
+                (after fetching the Rexx variable by name from the command context).
+                <br><em>Note</em>: if output is redirected the executed JDORFX command will use
+                the string representation in the canonized form.
+        </li></ul>
+    </dd>
+
+    <dt id="dtGC">GC</dt>
+    <dd>The JavaFX <em>javafx.scene.canvas.GraphicsContext</em> used for
+        immediate-mode drawing on the current Canvas. It maintains drawing state
+        such as transforms, fill, stroke, font, and line settings.
+        The command <a href="#cmdGC"><em>GC</em></a> allows for retrieving the current <em>GC</em>.
+        </dd>
+
+    <dt>image type</dt>
+    <dd>JDOR's image-type commands describe Java2D <em>BufferedImage</em>
+        raster/sample models. JavaFX Canvas exposes no selectable equivalent, so
+        <em>imageType</em> and <em>preferredImageType</em> are intentionally unsupported.
+    </dd>
+
+
+    <dt>pixel</dt>
+    <dd>A picture element in the Canvas raster. Its physical size depends on
+        output scaling and display density; JDORFX does not assign it a fixed inch size.</dd>
+
+    <dt id="dtRGB">RGB color</dt>
+    <dd>A color mix of the colors <em>red</em>, <em>green</em>, and <em>blue</em>, each defined
+        as an intensity between the integer values <em>0</em> and <em>255</em> or alternatively as a float
+        value between <em>0.0</em> (<em>0.0%</em>) and <em>1.0</em> (<em>100.0%</em>) representing
+        the percentage of the intensity (e.g. <em>0.5</em> represents <em>50.0%</em> intensity).
+        <br><em>Note:</em> if any of the supplied numbers includes the decimal dot then all the numbers
+        are taken as float values.
+    </dd>
+
+    <dt id="dtRGBA">RGBA color</dt>
+    <dd>A color mix of the colors <em>red</em>, <em>green</em>, <em>blue</em>, and <em>alpha</em>
+        each defined
+        as an intensity between the integer values <em>0</em> and <em>255</em> or alternatively as a float
+        value between <em>0.0</em> (<em>0.0%</em>) and <em>1.0</em> (<em>100.0%</em>) representing
+        the percentage of the intensity (e.g. <em>0.5</em> represents <em>50.0%</em> intensity).
+        <br><em>Note:</em> if any of the supplied numbers includes the decimal dot then all the numbers
+        are taken as float values.
+        <br><em>Note:</em> an <em>alpha</em> intensity
+        of <em>0</em> means "complete transparency", and an intensity of
+        <em>255</em> (or expressed as a float value of exactly <em>1.0</em>) means "no transparency".
+    </dd>
+
+    <dt>rotate</dt>
+    <dd>A positive or negative angle in degrees used by the
+        <em><a href="#cmdRotate">rotate</a></em> command. JDORFX appends the rotation
+        to the current JavaFX <em>GraphicsContext</em> transform, around either the
+        origin or the optionally supplied pivot point. JavaFX rotation expects the
+        angle in degrees, so JDORFX performs no degree-to-radian conversion.
+    </dd>
+
+    <dt>scale</dt>
+    <dd>A positive or negative value used to multiply the <em>width</em> and <em>height</em> values,
+        cf. the command <em><a href="#cmdScale">scale</a></em>.
+    </dd>
+
+    <dt>shear</dt>
+    <dd>A positive or negative value used to slant a drawing, also known as skewing,
+        cf. the command <em><a href="#cmdShear">shear</a></em>.
+    </dd>
+
+    <dt>translate</dt>
+    <dd>Moving the origin to a different position, such that the effective <em>x</em> and <em>y</em>
+        coordinates get calculated relative to the new origin,
+        cf. the command <em><a href="#cmdTranslate">translate</a></em>.
+    </dd>
+
+    <dt id="dtPointsArray">xPoints-array, yPoints-array</dt>
+    <dd>The commands
+       <a href="#cmdDrawPolygon"><em>drawPolygon</em></a>,
+       <a href="#cmdDrawPolyline"><em>drawPolyline</em></a> or
+       <a href="#cmdFillPolygon"><em>fillPolygon</em></a>
+
+        expect two arrays for the <em>x</em> and <em>y</em> coordinates of the
+        points, respectively.
+
+        There are two possibilities to supply these arrays to the JDORFX command handler:
+        <ul>
+            <li>either as a string consisting of a comma separated list of numbers in parentheses
+                (must be quoted to form a valid Rexx string and must not contain whitespace)
+                e.g.: <em>"(10,30,40,50,110,140)"</em>
+
+            </li><li>or passing a Rexx variable that refers to the appropriate Java array e.g.:
+                <br><em>xPoints=bsf.createJavaArrayOf("int.class", 10, 30, 40, 50, 110, 140)</em>
+                and then submitting the quoted name of the Rexx variable, e.g. <em>"xPoints"</em>,
+                as array argument; the command handler will then fetch the array from the Rexx variable
+                (after fetching the Rexx variable by name from the command context)
+                <br><em>Note</em>: if output is redirected the executed JDORFX command will use
+                the string representation in the canonized form.
+        </li></ul>
+    </dd>
+
+</dl>
+
+<p></p><hr><p>
+
+
+</p><h3 id="synopsisOfJDORFX">Synopsis of the <em>JDORFX</em> Rexx Commands</h3>
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+
+<p> In general the arguments to a command are blank delimited.  If supplying a Rexx variable, its
+referred to value will be supplied, if using a Rexx expression it will be evaluated and the
+resulting value will be supplied to the Rexx command handler.
+
+</p><p>If you wish to supply the name of a Rexx variable to a command (e.g.  for the commands
+<a href="#cmdDrawPolygon"><em>drawPolygon</em></a>,
+<a href="#cmdDrawPolyline"><em>drawPolyline</em></a>,
+<a href="#cmdFillPolygon"><em>fillPolygon</em></a> or
+<a href="#cmdGetState"><em>getState</em></a>)
+then make sure to enquote that
+variable name as otherwise its value gets supplied instead.
+
+</p><p>Commands need not be enquoted, unless their names collide with Rexx keyword names (which
+at the time of writing does not happen) or are used as Rexx variable names in your program.
+
+</p><p> Unquoted literals will be uppercased according to the Rexx rules and then supplied to the
+command handler.  If commands or arguments are unquoted then they get uppercased as well and blanks
+between them will be reduced to a single blank according to the Rexx rules before supplying the
+resulting command with arguments to the Rexx command handler.
+
+</p><p><em>Hint:</em> in general any command that allows for querying and setting a value will return the
+current value and in the case of setting it to a new value will return the old (previously current)
+value.
+
+</p><p><em>Compatibility note:</em> the handler recognizes the following inherited
+JDOR command names but does not implement them: <code>clip</code>,
+<code>clipRemove</code>, <code>composite</code>, <code>copyArea</code>,
+<code>draw3DRect</code>, <code>fill3DRect</code>, <code>gradientPaint</code>,
+<code>imageType</code>, <code>paint</code>, <code>pathIterator</code>,
+<code>popGC</code>, <code>preferredImageType</code>, <code>pushGC</code>,
+<code>noOp</code>,
+<code>render</code>, <code>setPaintMode</code>, and <code>setXorMode</code>.
+Calling one raises FAILURE <code>-101</code> with the message
+<code>unimplemented command</code>. Their inherited rows below describe the
+JDOR interface for comparison, not available JDORFX behavior.
+
+</p><h4>Current JDORFX Command Inventory</h4>
+<dl>
+  <dt>Window/application</dt>
+  <dd><code>winShow</code>, <code>winHide</code>, <code>winClose</code>,
+  <code>winLocation</code>, <code>winSize</code>, <code>winScreenSize</code>,
+  <code>winTitle</code>, <code>winVisible</code>, <code>winResizable</code>,
+  <code>winFrame</code>, <code>winAlwaysOnTop</code>,
+  <code>winAlwaysOnTopSupported</code>, <code>winToBack</code>,
+  <code>winToFront</code>, <code>winUpdate</code>, <code>sleep</code>, and
+  <code>assignRC</code>.</dd>
+  <dt>Canvas and drawing</dt>
+  <dd><code>newImage</code>, <code>GC</code>, <code>getState</code>,
+  <code>reset</code>, <code>color</code>, <code>background</code>,
+  <code>stroke</code>, <code>font</code>, <code>fontSize</code>,
+  <code>fontStyle</code>, <code>moveTo</code>, <code>drawLine</code>,
+  <code>drawString</code>, <code>stringBounds</code>,
+  <code>drawPolyline</code>, <code>drawPolygon</code>, <code>fillPolygon</code>,
+  <code>drawOval</code>, <code>fillOval</code>, <code>drawRect</code>,
+  <code>fillRect</code>, <code>clearRect</code>, <code>drawRoundRect</code>,
+  <code>fillRoundRect</code>, <code>drawArc</code>, <code>fillArc</code>,
+  <code>rotate</code>, <code>scale</code>, <code>shear</code>,
+  <code>translate</code>, and <code>transform</code>.</dd>
+  <dt>Images, clipboard, stack, printing</dt>
+  <dd><code>loadImage</code>, <code>drawImage</code>, <code>saveImage</code>,
+  <code>image</code>, <code>imageCopy</code>, <code>imageSize</code>,
+  <code>clipboardGet</code> (alias <code>getClipboard</code>),
+  <code>clipboardSet</code> (alias <code>setClipboard</code>),
+  <code>clipboardSetWithoutAlpha</code> (alias <code>setClipboardWithoutAlpha</code>), <code>pushImage</code>,
+  <code>popImage</code>, <code>printScaleToPage</code>,
+  <code>printScale</code>, <code>printPos</code>, and <code>printImage</code>.</dd>
+  <dt>2D shapes and paths</dt>
+  <dd><code>shape</code>, <code>drawShape</code>, <code>fillShape</code>,
+  <code>clipShape</code>, <code>shapeBounds</code>, <code>areaAdd</code>,
+  <code>areaExclusiveOr</code>, <code>areaIntersect</code>,
+  <code>areaSubtract</code>, <code>areaTransform</code>,
+  <code>pathAppend</code>, <code>pathClone</code>, <code>pathClose</code>,
+  <code>pathCurrentPoint</code>, <code>pathCurveTo</code>,
+  <code>pathLineTo</code>, <code>pathMoveTo</code>, <code>pathQuadTo</code>,
+  <code>pathReset</code>, <code>pathTransform</code>, and
+  <code>pathWindingRule</code>.</dd>
+  <dt>3D, camera, light, material</dt>
+  <dd><code>shape3D</code>, <code>draw3DShape</code>, <code>fill3DShape</code>,
+  <code>rotate3DShape</code>, <code>scale3DShape</code>,
+  <code>shear3DShape</code>, <code>translate3DShape</code>,
+  <code>cullFace</code>, <code>camera</code>, <code>setCamera</code>,
+  <code>translateCamera</code>, <code>rotateCamera</code>,
+  <code>cameraNearClip</code>, <code>cameraFarClip</code>, <code>light</code>,
+  <code>setLight</code>, <code>translatePointLight</code>, <code>map</code>,
+  <code>material</code>, <code>materialColor</code>, <code>materialMap</code>,
+  and <code>setMaterial</code>.</dd>
+  <dt>Animation</dt>
+  <dd><code>animationFade</code>, <code>animationRotate</code>,
+  <code>animationScale</code>, <code>animationTranslate</code>,
+  <code>animationPath</code>, <code>animationFill</code>,
+  <code>animationStroke</code>, <code>animationPauseTransition</code>,
+  <code>animationSequential</code>, <code>animationParallel</code>,
+  <code>setInterpolator</code>, <code>animationPlay</code>,
+  <code>animationPause</code>, <code>animationStop</code>,
+  <code>animationStatus</code>, <code>timeline</code>, <code>keyValue</code>,
+  and <code>keyframe</code>.</dd>
+</dl>
+
+<p><em>Window and application control:</em></p>
+<table id="windowCommands">
+<tbody><tr></tr><tr class="TableHeader"><th></th><th>Command</th><th>Argument(s)</th><th>Description / result in RC</th></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinShow">winShow</td><td></td><td>Shows the JavaFX stage. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinHide">winHide</td><td></td><td>Hides the stage without closing it. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinClose">winClose</td><td></td><td>Closes the stage. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinLocation">winLocation<br><em>Alias: winMoveTo</em></td><td class="argument">[x y]</td><td>Queries or sets the stage position. A query returns <em>x y</em>; setting returns the previous position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinSize">winSize</td><td class="argument">[width height]</td><td>Queries or sets the canvas/window size. A query returns <em>width height</em>; setting returns the previous size.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinScreenSize">winScreenSize</td><td></td><td>Returns the screen width and height as <em>width height</em>.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinTitle">winTitle</td><td class="argument">[title]</td><td>Queries or sets the title. The complete remainder is the title; setting returns the previous title.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinVisible">winVisible</td><td class="argument">[boolean]</td><td>Queries or sets visibility and returns the current/previous value as 1 or 0.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinResizable">winResizable</td><td class="argument">[boolean]</td><td>Queries or sets resizability and returns the current/previous value as 1 or 0.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinFrame">winFrame</td><td class="argument">[boolean]</td><td>Queries or sets stage decoration and returns the current/previous value as 1 or 0. Changing decoration rebuilds the stage.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinAlwaysOnTop">winAlwaysOnTop</td><td class="argument">[boolean]</td><td>Queries or sets always-on-top state and returns the current/previous value.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinAlwaysOnTopSupported">winAlwaysOnTopSupported</td><td></td><td>Despite its name, the current handler returns the current always-on-top state; it does not test platform support.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinToBack">winToBack</td><td></td><td>Requests that the stage move behind other windows. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinToFront">winToFront</td><td></td><td>Requests that the stage move in front of other windows. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdWinUpdate">winUpdate</td><td class="argument">[boolean]</td><td>Queries or controls automatic stage updates. A query returns 1 or 0; setting has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdSleep">sleep</td><td class="argument">seconds</td><td>Pauses the Rexx command thread for the supplied possibly fractional number of seconds. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAssignRC">assignRC</td><td class="argument">RexxVariable</td><td>Assigns the current RC value to a valid Rexx variable name. RC is not otherwise replaced.</td></tr>
+</tbody>
+</table>
+
+<p><em>Canvas, state, colour, stroke, and text:</em></p>
+<table id="canvasCommands">
+<tbody><tr></tr><tr class="TableHeader"><th></th><th>Command</th><th>Argument(s)</th><th>Description / result in RC</th></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdNewImage">newImage<br><em>Alias: new</em></td><td class="argument">[width height [depthBuffer]]</td><td>Creates a new JavaFX canvas and scene; defaults to 500 by 500 and a false depth buffer. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdGC">GC</td><td></td><td>Returns the current JavaFX <em>GraphicsContext</em>.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdGetState">getState</td><td class="argument">[variableName]</td><td>Returns an ooRexx <em>StringTable</em> containing current state, registries, image stack, and print settings; optionally assigns it to the named Rexx variable.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdReset">reset<br><em>Alias: clear</em></td><td></td><td>Clears registries and stacks and restores defaults. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdColor">color<br><em>Alias: colour</em></td><td class="argument">[name [red green blue [alpha]]]</td><td>Queries, selects, or defines the common fill and stroke colour. Decimal components use normalized JavaFX values; integer components use values from 0 through 255. Querying or setting returns the current/previous JavaFX colour.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdBackground">background</td><td class="argument">[colorName]</td><td>Queries or sets the scene background and returns the current/previous JavaFX paint.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdStroke">stroke</td><td class="argument">[name [width [cap join [miterLimit [dashArray dashOffset]]]]]</td><td>Queries, selects, or defines line settings and returns the previous settings. Defaults: width 1, SQUARE cap, MITER join, miter limit 10, no dashes, offset 0.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFont">font</td><td class="argument">[name [family]]</td><td>Queries the current font, selects a registered/Rexx-variable font, or creates a font using current size and style. Returns the previous JavaFX font; the family is the complete remainder.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFontSize">fontSize</td><td class="argument">[size]</td><td>Queries or sets the positive integer font size and returns the previous size. The new size is used when a font is next created.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFontStyle">fontStyle</td><td class="argument">[PLAIN|BOLD|ITALIC|BOLDITALIC]</td><td>Queries or sets style; numeric values 0–3 are accepted.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdMoveTo">moveTo<br><em>Aliases: goto, location, pos, position</em></td><td class="argument">[x y]</td><td>Queries or sets the current position. A query returns <em>currX currY</em>; setting returns the previous position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDrawLine">drawLine</td><td class="argument">toX toY</td><td>Strokes from the current position to the target without changing the current position. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDrawString">drawString</td><td class="argument">text</td><td>Draws the complete remaining text at the current position. RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdStringBounds">stringBounds</td><td class="argument">text</td><td>Returns <em>minX minY width height</em> for the complete remaining text in the current font.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDrawPolyline">drawPolyline</td><td class="argument">xPoints yPoints nPoints</td><td>Strokes connected segments. Point lists may be inline parenthesized arrays such as <em>(1,2,3)</em> or named Rexx Java <em>int[]</em> variables.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDrawPolygon">drawPolygon</td><td class="argument">xPoints yPoints nPoints</td><td>Strokes a closed polygon. Use inline parenthesized arrays as described for <em>drawPolyline</em>.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFillPolygon">fillPolygon</td><td class="argument">xPoints yPoints nPoints</td><td>Fills a closed polygon. Use inline parenthesized arrays as described for <em>drawPolyline</em>.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDrawOval">drawOval</td><td class="argument">width height</td><td>Strokes an oval in the current-position bounding box.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFillOval">fillOval</td><td class="argument">width height</td><td>Fills an oval in the current-position bounding box.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDrawRect">drawRect</td><td class="argument">width height</td><td>Strokes a rectangle at the current position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFillRect">fillRect</td><td class="argument">width height</td><td>Fills a rectangle at the current position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdClearRect">clearRect</td><td class="argument">width height</td><td>Clears a rectangle to transparent pixels at the current position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDrawRoundRect">drawRoundRect</td><td class="argument">width height arcWidth arcHeight</td><td>Strokes a rounded rectangle at the current position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFillRoundRect">fillRoundRect</td><td class="argument">width height arcWidth arcHeight</td><td>Fills a rounded rectangle at the current position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDrawArc">drawArc</td><td class="argument">width height startAngle arcExtent</td><td>Strokes a JavaFX OPEN arc at the current position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFillArc">fillArc</td><td class="argument">width height startAngle arcExtent</td><td>Fills a JavaFX ROUND arc at the current position.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdRotate">rotate</td><td class="argument">angle [pivotX pivotY]</td><td>Appends a clockwise JavaFX rotation. Exactly one or three arguments are accepted; RC has no transform result. Use <em>transform</em> to query the matrix.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdScale">scale</td><td class="argument">[x [y]]</td><td>Queries or appends scaling. If <em>y</em> is omitted it equals <em>x</em>; setting returns the previous X/Y scale components.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdShear">shear</td><td class="argument">[x [y]]</td><td>Queries or appends shearing. If <em>y</em> is omitted it equals <em>x</em>; setting returns the previous X/Y shear components.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdTranslate">translate</td><td class="argument">[x [y]]</td><td>Queries or appends a translation. If <em>y</em> is omitted it equals <em>x</em>; setting returns the previous translation.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdTransform">transform</td><td class="argument">[RESET | transformName | [name] translateX translateY scaleX scaleY shearX shearY]</td><td>Queries, resets, retrieves, applies, or registers a JavaFX <em>Affine</em>. A dot preserves the respective current component. A query returns six components; retrieving/defining a named transform returns the object.</td></tr>
+</tbody>
+</table>
+<h4 id="imageCompatibilityCommands">JavaFX Image Compatibility Commands</h4>
+<table><tbody>
+<tr class="TableHeader"><th></th><th>Command</th><th>Argument(s)</th><th>JDORFX behavior</th></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command">loadImage</td><td class="argument">imageName fileName</td><td>Synchronously loads a JavaFX Image, registers it case-insensitively, and returns <em>width height</em>. The complete remainder after the name is the filename.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command">drawImage</td><td class="argument">name [background]<br>name width height [background]<br>name width height srcX1 srcY1 srcX2 srcY2 [background]</td><td>Uses JavaFX <code>GraphicsContext.drawImage</code> at the current position. The source-rectangle form treats width/height as destination dimensions; an optional background fill emulates JDOR without changing the current fill.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command">saveImage</td><td class="argument">fileName</td><td>Snapshots the backing Canvas on the JavaFX Application Thread and encodes it with ImageIO. It does not include retained scene-graph nodes drawn above the Canvas.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command">image / imageCopy</td><td class="argument">[imageName [background]]</td><td>Returns a Canvas snapshot or registered image as a JDOR-compatible <code>BufferedImage</code>; <code>imageCopy</code> returns an independent copy and can composite transparency over a background.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command">imageSize</td><td class="argument">[imageName]</td><td>Accepts the Canvas, registered JavaFX Images, or JavaFX/BufferedImage objects held in Rexx variables and returns <em>width height</em>.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command">clipboardGet / getClipboard<br>clipboardSet / setClipboard<br>clipboardSetWithoutAlpha / setClipboardWithoutAlpha</td><td class="argument">[imageName]</td><td>Uses the JavaFX system Clipboard. <code>clipboardGet</code> stores the clipboard image under <em>CLIPBOARD</em> or the supplied name. The set commands copy the current Canvas snapshot or a registered/Rexx-variable image to the clipboard. Compatibility results are <code>BufferedImage</code> objects; the without-alpha form composites over white and returns <code>TYPE_INT_RGB</code>.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command">pushImage / popImage</td><td class="argument">[imageName]</td><td>Maintains a LIFO stack of Canvas snapshots. Pop composites the snapshot at (0,0); it does not replace or resize the Canvas.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command">printScaleToPage / printScale / printPos / printImage</td><td class="argument">command-specific</td><td>Uses JavaFX PrinterJob with JDOR-compatible one-page defaults, proportional scale-to-page, or manual scale and position.</td></tr>
+</tbody></table>
+
+<hr width="100%">
+<p>
+
+</p><h3 id="jdorfxShapes">The <em>JDORFX Shape</em> Related Rexx Commands</h3>
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+
+<p>JDORFX creates retained JavaFX <code>javafx.scene.shape.Shape</code> nodes.
+For JDOR source compatibility, the <code>shape</code> command accepts familiar
+type names such as <em>Arc2D</em> and <em>Rectangle2D</em>, but the returned
+objects are JavaFX shapes:</p>
+
+<ul>
+    <li><em>Area</em> (a registered JavaFX Shape used with constructive shape operations)
+    </li><li><em>Arc</em>
+    </li><li><em>CubicCurve</em>
+    </li><li><em>Ellipse</em>
+    </li><li><em>Line</em>
+    </li><li><em>Path</em>
+    </li><li><em>Polygon</em>
+    </li><li><em>QuadCurve</em>
+    </li><li><em>Rectangle</em>
+    </li><li><em>rounded Rectangle</em>
+</li></ul>
+
+<p>A JavaFX <em>Path</em> is assembled from retained path elements. JDORFX can
+also append the geometry of supported JavaFX shapes and associate an
+<code>Affine</code> transform with a path. The inherited <code>pathIterator</code>
+command is recognized but not implemented.</p>
+
+<p><em>Note:</em> JavaFX shape coordinates are double-precision values. A
+created shape remains a named scene-graph node and can later be transformed or
+animated.
+
+</p><p>
+The <em>Shape</em> related <em>JDORFX</em> Rexx commands are:
+
+</p><ul>
+    <li><a href="#cmdShape"><em>shape</em></a>
+                         (can be used to create one of the following shapes:
+                        <em>Area</em>, <em>Arc2D</em>, <em>CubicCurve2D</em>,
+                        <em>Ellipse2D</em>, <em>Line2D</em>, <em>Path2D</em>,
+                        <em>QuadCurve2D</em>,
+                        <em>Rectangle2D</em>, <em>RoundRectangle2D</em>)
+
+    </li><li><a href="#cmdClipShape"><em>clipShape (shapeClip)</em></a>
+    </li><li><a href="#cmdDrawShape"><em>drawShape (shapeDraw)</em></a>
+    </li><li><a href="#cmdFillShape"><em>fillShape (shapeFill)</em></a>
+    </li><li><a href="#cmdShapeBounds"><em>shapeBounds</em></a>
+
+</li></ul>
+
+The <em>Area</em> shape specific <em>JDORFX</em> Rexx commands are:
+
+<ul>
+    <li id="cmdAreaAdd"><em>areaAdd</em> (alias <em>areaUnion</em>)
+    </li><li id="cmdAreaExclusiveOr"><em>areaExclusiveOr</em> (alias <em>areaXor</em>)
+    </li><li id="cmdAreaIntersect"><em>areaIntersect</em>
+    </li><li id="cmdAreaSubtract"><em>areaSubtract</em>
+    </li><li id="cmdAreaTransform"><em>areaTransform</em>
+
+</li></ul>
+
+<p>These commands use JavaFX static constructive operations
+<code>Shape.union</code>, <code>Shape.intersect</code>, and
+<code>Shape.subtract</code>. JDORFX stores the resulting JavaFX Shape back under
+the area nickname; exclusive-or is composed from two subtractions and a union.
+<code>areaTransform</code> adds a registered or Rexx-variable JavaFX
+<code>Affine</code> to that Shape.</p>
+
+The JavaFX <em>Path</em> commands, retaining JDOR's <em>Path2D</em> compatibility terminology, are:
+
+<ul>
+    <li><a href="#cmdPathAppend"><em>pathAppend</em></a>
+    </li><li><a href="#cmdPathClone"><em>pathClone</em></a>
+    </li><li><a href="#cmdPathClose"><em>pathClose</em></a>
+    </li><li><a href="#cmdPathCurrentPoint"><em>pathCurrentPoint</em></a>
+    </li><li><a href="#cmdPathCurveTo"><em>pathCurveTo</em></a>
+    </li><li><a href="#cmdPathLineTo"><em>pathLineTo</em></a>
+    </li><li><a href="#cmdPathMoveTo"><em>pathMoveTo</em></a>
+    </li><li><a href="#cmdPathQuadTo"><em>pathQuadTo</em></a>
+    </li><li><a href="#cmdPathReset"><em>pathReset</em></a>
+    </li><li><a href="#cmdPathTransform"><em>pathTransform</em></a>
+    </li><li><a href="#cmdPathWindingRule"><em>pathWindingRule</em></a>
+
+</li></ul>
+
+
+<hr width="75%">
+<p>
+
+
+</p><h2 id="h2ShapeCommands"><em>Shape</em> Related Commands </h2>
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+
+<p>Here the <em>JDORFX</em> commands that are related to all <em>Shape</em>s:
+</p><p>
+
+    <table>
+        <tbody><tr>
+    </tr><tr class="TableHeader">
+    <th>
+    </th><th> Command
+    </th><th> Argument(s)
+    </th><th> Description
+
+    <!-- -------------------------------------------------------- -->
+    </th></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdShape"> "shape"
+    </td><td colspan="3"> Queries or creates a named <em>Shape</em>.
+
+        <br>Querying will return the stored shape, creating a new shape
+            will store it with the supplied <em>shapeNickName</em> and return it
+            via the Rexx variable <em>RC</em>.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> shapeNickName
+    </td><td> The name of the <em>Shape</em> that gets returned from the registry.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> shapeNickName typeName args
+    </td><td> Creates a new <em>Shape</em> of type <em>typeName</em> using <em>args</em> arguments,
+         registers and returns it.
+         <table>
+             <tbody><tr><th>Accepted <code>typeName</code> </th><th>arg(s) </th><th width="60%">Brief Description
+
+                 <!--  ----------------------------------- -->
+              </th></tr><tr>
+                  <td class="command" id="cmdShapeArea">Area
+                  </td><td class="argument">shapeNickName
+                  </td><td>
+                       Defines a new area shape for the supplied shape.
+                       Using an area shape as argument will create a new area shape
+                       (effectively a copy).
+
+                       <br>All area related commands start with the word <em>area</em>.
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">Arc | Arc2D
+                  </td><td class="argument">x y width height start extent type
+                  </td><td>
+                       This is the JDOR-compatible bounding-box form. JDORFX
+                       treats <em>x/y</em> as the upper-left position, converts
+                       the box to JavaFX center and radius properties, and passes
+                       <em>start</em> and <em>extent</em> unchanged to the JavaFX
+                       <a href="https://docs.oracle.com/javase/8/javafx/api/javafx/scene/shape/Arc.html"><em>Arc</em></a>
+                       constructor as <em>startAngle</em> and <em>length</em>.
+
+                       <br><em>Current implementation note:</em> in this numeric
+                       form, the handler assigns the supplied <em>width</em> to
+                       the vertical diameter and <em>height</em> to the horizontal
+                       diameter. Non-square bounding boxes are therefore transposed.
+                       No angle-direction conversion is performed.
+
+                       <br> <em>type</em> determines whether it should be left open (<em>OPEN</em> or
+                       <em>0</em>), or a line should be drawn between the starting and the ending point
+                       of the arc (<em>CHORD</em> or <em>1</em>),
+                       or a line should get drawn between the starting point, the center point and
+                       the ending point  of the arc (<em>PIE</em> or <em>2</em>).
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">
+                  </td><td class="argument">bounds start extent type
+                  </td><td>
+                       <em>bounds</em> resolves a registered or Rexx-variable
+                       JavaFX <em>Rectangle</em>. JDORFX converts its x/y/width/height
+                       bounds to the JavaFX Arc's centerX/centerY/radiusX/radiusY
+                       properties and passes <em>start</em> and <em>extent</em>
+                       unchanged as <em>startAngle</em> and <em>length</em>.
+                       Unlike the numeric form, this form preserves the Rectangle's
+                       horizontal and vertical dimensions.
+
+                       <br> <em>type</em> determines whether it should be left open (<em>OPEN</em> or
+                       <em>0</em>), or a line should be drawn between the starting and the ending point
+                       of the arc (<em>CHORD</em> or <em>1</em>),
+                       or a line should get drawn between the starting point, the center point and
+                       the ending point  of the arc (<em>PIE</em> or <em>2</em>).
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">Cubic | CubicCurve | CubicCurve2D
+                  </td><td class="argument">x1 y1 ctrlx1 ctrly1 ctrlx2 ctrly2 x2 y2
+                  </td><td> Defines a cubic parametric curve shape between the points <em>x1/y1</em> and
+                       <em>x2/y2</em> controlled by the two control points located
+                       at <em>ctrlx1/ctrly1</em> and <em>ctrlx2/ctrly2</em>.
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">Elli | Ellipse | Ellipse2D
+                  </td><td class="argument">x y width height
+                  </td><td>
+                       Defines an ellipse (oval) shape at position <em>x</em> and <em>y</em>
+                       in a rectangle of <em>width</em> and <em>height</em>.
+                       If <em>width</em> and <em>height</em> are of the same length
+                       the ellipse (oval) will be a circle.
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">line | Line2D
+                  </td><td class="argument">x1 y1 x2 y2
+                  </td><td>
+                       Defines a line shape that will be drawn from position <em>x1/y1</em> to
+                       <em>x2/y2</em>.
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">path | Path2D
+                  </td><td class="argument">[rule]
+                  </td><td>Creates a JavaFX <em>Path</em>. The optional <em>rule</em>
+                      can be either <em>0</em> (<em>WIND_EVEN_ODD</em>) or
+                      <em>1</em> (<em>WIND_NON_ZERO</em>), which is the default.
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">Polygon
+                  </td><td class="argument">xPoints-array yPoints-array nPoints
+                  </td><td>Creates a <em>Polygon</em> shape consisting of <em>nPoints</em>
+                      taken from the
+                      <a href="#dtPointsArray"><em>xPoints-array</em></a> and
+                      <a href="#dtPointsArray"><em>yPoints-array</em></a>.
+                      If the endpoint is not the same coordinate as the first point,
+                      the polygon gets closed by drawing a line from the
+                      first to the last point.
+
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">Quad | QuadCurve | QuadCurve2D
+                  </td><td class="argument">x1 y1 ctrlx ctrly x2 y2
+                  </td><td> Defines a quadratic parametric curve shape between the points <em>x1/y1</em> and
+                       <em>x2/y2</em> controlled by the control point located
+                       at <em>ctrlx/ctrly</em>.
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">Rect | Rectangle | Rectangle2D
+                  </td><td class="argument">x y width height
+                  </td><td>
+                       Defines a rectangular shape at position <em>x</em> and <em>y</em>
+                       of <em>width</em> and <em>height</em>.
+                       If <em>width</em> and <em>height</em> are of the same length
+                       the rectangle is a square.
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+
+                 <!--  ----------------------------------- -->
+              </td></tr><tr>
+                  <td class="command">RoundRect | RoundRectangle | RoundRectangle2D
+                  </td><td class="argument">x y width height arcWidth arcHeight
+                  </td><td>
+                       Defines a round rectangular shape at position <em>x</em> and <em>y</em>
+                       of <em>width</em> and <em>height</em>, where the corner arcs have
+                       width <em>arcWidth</em> and height <em>arcHeight</em>.
+
+              </td></tr><tr><td colspan="3" style="border: 1px solid black;border-collapse: collapse;">
+
+         </td></tr></tbody></table>
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdClipShape"> "clipShape"
+    </td><td colspan="2"> Sets the supplied JavaFX Shape as the root node's clip,
+                     replacing the previous root clip.
+
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> shapeNickName
+    </td><td> Applies the shape stored with <em>shapeNickName</em> and if not present
+         a <em>Shape</em> a Rexx variable named <em>shapeNickName</em> refers to.
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdDrawShape"> "drawShape"
+    </td><td colspan="2"> Adds the supplied JavaFX Shape to the scene with no
+                     fill and the current stroke settings.
+
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> shapeNickName
+    </td><td> Draws the shape stored with <em>shapeNickName</em> and if not present
+         a <em>Shape</em> a Rexx variable named <em>shapeNickName</em> refers to.
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdFillShape"> "fillShape"
+    </td><td colspan="2"> Adds the supplied JavaFX Shape to the scene with the
+                     current fill and no stroke.
+
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> shapeNickName
+    </td><td> Fills the shape stored with <em>shapeNickName</em> and if not present
+         a <em>Shape</em> a Rexx variable named <em>shapeNickName</em> refers to.
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdShapeBounds"> "shapeBounds"
+    </td><td colspan="2"> Returns the JavaFX layout bounds of the supplied
+                     Shape as a blank-delimited Rexx string:
+                     "<em>x</em> <em>y</em> <em>width</em> <em>height</em>".
+
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> shapeNickName
+    </td><td> Returns a blank delimited string denoting the <em>bounds</em>
+        (<em>x</em>, <em>y</em>, <em>width</em>, <em>height</em>)
+         for the shape stored with <em>shapeNickName</em> and if not present
+         a <em>Shape</em> a Rexx variable named <em>shapeNickName</em> refers to.
+
+
+    </td></tr></tbody></table>
+
+<hr width="75%">
+
+<h2 id="h2PathCommands"><em>Path</em> (<em>Path2D</em> Compatibility) Related Commands</h2>
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+
+<p>The JavaFX <em>Path</em> (<code>javafx.scene.shape.Path</code>) allows arbitrary
+geometry to be assembled from move, line, quadratic Bézier, cubic Bézier, and
+close elements. JDORFX retains the <em>Path2D</em> terminology and creation alias
+for source compatibility, but the stored and returned object is a JavaFX Path.
+
+
+</p><p>Here are the JDORFX commands related to a JavaFX <em>Path</em>:</p>
+
+<table>
+        <tbody><tr>
+    </tr><tr class="TableHeader">
+    <th>
+    </th><th> Command
+    </th><th> Argument(s)
+    </th><th> Description
+
+    <!-- -------------------------------------------------------- -->
+    </th></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathAppend"> "pathAppend"
+    </td><td colspan="3"> The named JavaFX <em>Path</em> gets the supported
+            geometry of a named JavaFX <em>Shape</em> appended.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName spNickName [connect=.true]
+    </td><td> <em>pNickName</em> denotes the JavaFX <em>Path</em> and
+         <em>spNickName</em> a supported registered/Rexx-variable JavaFX Shape.
+         The optional <em>connect</em> argument controls whether
+         the appended shape should get connected with a line segment (default).
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathClone"> "pathClone"
+    </td><td colspan="3"> The named JavaFX <em>Path</em> gets cloned and returned.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName [clonedNickName]
+    </td><td> <em>pNickName</em> denotes the name of a registered JavaFX <em>Path</em>, that gets cloned and returned. If the optional <em>clonedNickName</em>
+         is specified then the clone gets registered with the uppercased
+         <em>clonedNickName</em> as index.
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathClose"> "pathClose"
+    </td><td colspan="3"> The named JavaFX <em>Path</em> will have its current segment
+        closed by drawing a straight line back to the last <em>pathMoveTo</em> position.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName
+    </td><td> <em>pNickName</em> denotes the name of a registered JavaFX <em>Path</em>, of which the last segment gets closed by drawing a line
+         to the last <em>pathMoveTo</em> position.
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathCurrentPoint"> "pathCurrentPoint"
+    </td><td colspan="3"> Returns the current point (the position of the last <em>pathMoveTo</em>)
+        of the named JavaFX <em>Path</em>.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName
+    </td><td> <em>pNickName</em> denotes the name of a registered JavaFX <em>Path</em>, which current point gets returned.
+         <br>
+         <em>Note:</em> if no <em>pathMoveTo</em> was issued yet, then <em>.nil</em>
+                        gets returned, otherwise a blank delimited Rexx string in
+                        the form of: "<em>x y</em>".
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathCurveTo"> "pathCurveTo"
+    </td><td colspan="3"> Creates a cubic parametric curve segment.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName ctrlx1 ctrly1 ctrlx2 ctrly2 x y
+    </td><td> <em>pNickName</em> denotes the name of a registered JavaFX <em>Path</em> for which a cubic parametric curve segment gets
+         created between the points <em>currentPoint</em>
+         (cf. <em>pathCurrentPoint</em> command above)
+         and the point with the co-ordinate <em>x/y</em> controlled by the two control points located
+         at <em>ctrlx1/ctrly1</em> and <em>ctrlx2/ctrly2</em>.
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathLineTo"> "pathLineTo"
+    </td><td colspan="3"> Creates a line segment.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName x y
+    </td><td> <em>pNickName</em> denotes the name of a registered JavaFX <em>Path</em> for which a line segment gets
+         created between the points <em>currentPoint</em>
+         (cf. <em>pathCurrentPoint</em> command above)
+         and the point with the co-ordinate <em>x/y</em>.
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathMoveTo"> "pathMoveTo"
+    </td><td colspan="3"> Adds a point to the path at the supplied position.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName x y
+    </td><td> <em>pNickName</em> denotes the name of a registered JavaFX <em>Path</em> for which a point should get added at <em>x/y</em>
+         (making it the <em>currentPoint</em>, cf.
+         <em>pathCurrentPoint</em> command above).
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathQuadTo"> "pathQuadTo"
+    </td><td colspan="3"> Creates a quadratic parametric curve segment.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName ctrlx ctrly x y
+    </td><td> <em>pNickName</em> denotes the name of a registered JavaFX <em>Path</em> for which a quadratic parametric curve segment gets
+         created between the points <em>currentPoint</em>
+         (cf. <em>pathCurrentPoint</em> command above)
+         and the point with the co-ordinate <em>x/y</em> controlled by
+         the control point located at <em>ctrlx/ctrly</em>.
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathReset"> "pathReset"
+    </td><td colspan="3"> The named JavaFX <em>Path</em> will be reset to
+        become empty.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName
+    </td><td> <em>pNickName</em> denotes the name of a registered JavaFX <em>Path</em>, which gets reset to become empty.
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathTransform"> "pathTransform"
+    </td><td colspan="3"> Associates a JavaFX Affine transform with the named Path.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName tNickName
+    </td><td> <em>pNickName</em> denotes the JavaFX Path. <em>tNickName</em>
+         resolves a registered or Rexx-variable JavaFX <em>Affine</em>. Repeated
+         calls accumulate the association; it is applied when the Path is drawn or filled.
+
+
+    <!-- -------------------------------------------------------- -->
+    </td></tr><tr class="CommandRowColumn"><!-- table row -->
+    <td class="cmdNr">
+    </td><td class="command" id="cmdPathWindingRule"> "pathWindingRule"
+    </td><td colspan="3"> Queries or sets the <em>winding rule</em> of the named
+                     JavaFX <em>Path</em>.
+
+        <!-- -------------------------------------- -->
+    </td></tr><tr class="ArgumentRowColor"><td><!-- table row -->
+    </td><td>
+    </td><td class="argument"> pNickName [newValue]
+    </td><td> Returns or sets the <em>winding rule</em> of the JavaFX <em>Path</em>
+         denoted by <em>pNickName</em>. If <em>newValue</em> is supplied, it
+         needs to be <em>WIND_EVEN_ODD</em> or <em>0</em>, alternatively
+         <em>WIND_NON_ZERO</em> or <em>1</em>.
+
+
+    </td></tr></tbody></table>
+
+
+
+<hr width="75%"><p>
+
+</p><h2 id="h2ThreeDCommands"><em>3D, Camera, Light, and Material</em> Related Commands </h2>
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+
+<p>JDORFX adds retained JavaFX 3D nodes, cameras, lights, texture maps, and
+Phong materials. A <code>newImage</code> depth-buffer argument of true enables
+correct depth testing for 3D scenes.</p>
+
+<table id="threeDCommands"><tbody>
+<tr class="TableHeader"><th></th><th>Command</th><th>Argument(s)</th><th>Description</th></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdShape3D">"shape3D"</td><td colspan="2">Creates or queries a registered JavaFX 3D shape.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name<br>name box x y z width height depth<br>name cylinder x y z radius height<br>name sphere x y z radius</td><td>A query returns a descriptive string. Creation registers and returns a Box, Cylinder, or Sphere; x/y/z set its translation.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdDraw3DShape">"draw3DShape"<br>"drawShape3D"</td><td colspan="2">Sets LINE draw mode and adds a named or Rexx-variable 3D shape to the scene.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">shapeName</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdFill3DShape">"fill3DShape"<br>"fillShape3D"</td><td colspan="2">Sets FILL draw mode and adds a named or Rexx-variable 3D shape to the scene.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">shapeName</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdRotate3DShape">"rotate3DShape"<br>"rotateShape3D"</td><td colspan="2">Adds a cumulative axis-angle Affine rotation.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name angle pivotX pivotY pivotZ axisX axisY axisZ</td><td>The axis vector selects the rotation axis.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdScale3DShape">"scale3DShape"<br>"scaleShape3D"</td><td colspan="2">Adds a cumulative 3D scale around a pivot.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name scaleX scaleY scaleZ pivotX pivotY pivotZ</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdShear3DShape">"shear3DShape"<br>"shearShape3D"</td><td colspan="2">Adds a cumulative two-dimensional shear around a pivot.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name shearX shearY pivotX pivotY</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdTranslate3DShape">"translate3DShape"<br>"translateShape3D"</td><td colspan="2">Adds a cumulative 3D translation.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name tx ty tz</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdCullFace">"cullFace"</td><td colspan="2">Queries or sets face culling and returns the previous mode.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">shapeName [NONE|BACK|FRONT]</td><td>JavaFX Shape3D objects default to BACK.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdCamera">"camera"</td><td colspan="2">Creates or queries a registered camera.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">[name]<br>name parallel x y z<br>name perspective x y z [fieldOfView [fixedEyeAtCameraZero]]</td><td>A perspective camera defaults to field of view 30 and fixed-eye false.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdSetCamera">"setCamera"</td><td colspan="2">Activates a registered/Rexx-variable camera, or restores the default camera.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">[cameraName]</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdCameraTransforms">"translateCamera"<br>"rotateCamera"</td><td colspan="2">Adds a cumulative translation or axis-angle rotation to a camera.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name tx ty tz<br>name angle pivotX pivotY pivotZ axisX axisY axisZ</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdCameraClip">"cameraNearClip"<br>"cameraFarClip"</td><td colspan="2">Queries or sets a camera clipping plane and returns the previous value.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name [distance]</td><td>Distances must be finite and positive; near must remain below far.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdLight">"light"</td><td colspan="2">Creates or queries a registered JavaFX light.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name<br>name ambient [color]<br>name point x y z [color]</td><td>New lights default to white and are initially disabled.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdSetLight">"setLight"</td><td colspan="2">Enables or disables a registered/Rexx-variable light.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name [turnOn|turnOff]</td><td>The default action is TURNON.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdTranslatePointLight">"translatePointLight"</td><td colspan="2">Adds a cumulative translation to a PointLight.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name tx ty tz</td><td>AmbientLight objects are rejected.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdMap">"map"</td><td colspan="2">Loads and optionally resizes, rotates, and background-fills a texture map; returns width and height.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name imagePath<br>name imagePath addWidth addHeight angle [color]</td><td>The image path is one token and may be Rexx-quoted.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdMaterial">"material"</td><td colspan="2">Creates, registers, and returns a JavaFX PhongMaterial.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name [color]</td><td>The optional color sets its diffuse color.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdMaterialColor">"materialColor"</td><td colspan="2">Sets diffuse color, or specular color and power.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name diffuse|diffuseColor color<br>name specular|specularColor color [specularPower]</td><td>Specular power defaults to 32.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdMaterialMap">"materialMap"</td><td colspan="2">Sets a bump, diffuse, self-illumination, or specular map.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name bump|diffuse|selfIllumination|specular map</td><td>The corresponding *Map spellings are also accepted.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdSetMaterial">"setMaterial"</td><td colspan="2">Assigns a registered/Rexx-variable material to a 3D shape.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">shapeName materialName</td><td>RC has no result.</td></tr>
+</tbody></table>
+
+<p></p><hr width="75%"><p>
+
+</p><h2 id="h2AnimationCommands"><em>Animation</em> Related Commands </h2>
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+
+<p>Animations operate on named JavaFX nodes from the 2D-shape, 3D-shape,
+camera, and light registries. Durations are milliseconds; cycle count defaults
+to one, auto-reverse defaults to false, and <code>-1</code> means indefinite.
+Because JavaFX cameras and lights extend <code>Node</code>, node transitions and
+timeline translation/rotation properties can animate cameras and PointLights;
+fill and stroke transitions remain limited to 2D Shapes.</p>
+
+<table id="animationCommands"><tbody>
+<tr class="TableHeader"><th></th><th>Command</th><th>Argument(s)</th><th>Description</th></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationFade">"animationFade"<br>"fade"<br>"fadeTransition"</td><td colspan="2">Registers an opacity transition.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim node duration [from [to [cycles [autoReverse]]]]</td><td>Omitted opacity values retain JavaFX defaults.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationRotate">"animationRotate"<br>"rotateTransition"</td><td colspan="2">Registers a by-angle rotation transition.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim node duration [angle [cycles [autoReverse [axisX [axisY [axisZ]]]]]]</td><td>An explicitly supplied axis defaults by omitted component to 0, 0, 1.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationScale">"animationScale"<br>"scaleTransition"</td><td colspan="2">Registers a by-component scale transition.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim node duration [byX [byY [byZ [cycles [autoReverse]]]]]</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationTranslate">"animationTranslate"<br>"translateTransition"</td><td colspan="2">Registers a by-component translation.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim node duration [byX [byY [byZ [cycles [autoReverse]]]]]</td><td>RC has no result.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationPath">"animationPath"<br>"pathTransition"</td><td colspan="2">Registers movement along a named 2D shape.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim node duration path [cycles [autoReverse [orientation]]]</td><td>Orientation accepts NONE, ORTHOGONAL, or ORTHOGONAL_TO_TANGENT.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationFillStroke">"animationFill" / "fillTransition"<br>"animationStroke" / "strokeTransition"</td><td colspan="2">Registers a fill- or stroke-color transition for a 2D Shape.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim shape duration [fromColor [toColor [cycles [autoReverse]]]]</td><td>Colors resolve from the registry, Rexx variables, or JavaFX web syntax.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationPauseTransition">"animationPauseTransition"</td><td colspan="2">Registers a JavaFX pause/delay transition.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim duration [cycles [autoReverse]]</td><td>This transition has no target node.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationGroups">"animationSequential" / "sequentialTransition"<br>"animationParallel" / "parallelTransition"</td><td colspan="2">Registers child animations to play in order or together.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim [node] child1 child2 ... [cycles] [autoReverse]</td><td>A resolvable first node supplies the group's default target.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdSetInterpolator">"setInterpolator"</td><td colspan="2">Sets an interpolator on a supported transition.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim LINEAR|DISCRETE|EASE_IN|EASE_OUT|EASE_BOTH|SPLINE(x1,y1,x2,y2)</td><td>Timelines and sequential/parallel groups reject a global interpolator.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdAnimationControl">"animationPlay" / "play"<br>"animationPause" / "pause"<br>"animationStop" / "stop"<br>"animationStatus"</td><td colspan="2">Controls or queries a registered animation.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">anim</td><td>Status returns RUNNING, PAUSED, or STOPPED; stop resets to the beginning.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdTimeline">"timeline"</td><td colspan="2">Creates or retrieves a Timeline and registers it as an animation.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name [cycles [autoReverse]]</td><td>Returns the JavaFX Timeline.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdKeyValue">"keyValue"</td><td colspan="2">Creates, registers, and returns a reusable JavaFX KeyValue.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">name node property target [interpolator]</td><td>Supported properties: opacity, rotate, translateX/Y/Z (aliases x/y/z), scaleX/Y/Z, fill/fillColor, and stroke/strokeColor.</td></tr>
+<tr class="CommandRowColumn"><td class="cmdNr"></td><td class="command" id="cmdKeyframe">"keyframe"</td><td colspan="2">Adds and returns a JavaFX KeyFrame at a time in milliseconds.</td></tr>
+<tr class="ArgumentRowColor"><td></td><td></td><td class="argument">timeline time keyValueNameOrArray</td><td>Accepts one registered KeyValue or a non-empty typed Java KeyValue[]. Quote an array variable name so Rexx does not substitute its value.</td></tr>
+</tbody></table>
+
+<p></p><center>
+
+   <hr width="75%">
+    <small>
+       JDORFX synopsis copied from the JDOR synopsis structure and adapted: 2026-08-22
+       <br>JDORFX synopsis version: 100.20260822
+    </small>
+</center>
+<nav>
+<a href="#purposeOfJDORFX">Purpose</a> |
+<a href="#briefOverview">Brief Overview</a> |
+<a href="#synopsisOfJDORFX">Synopsis JDORFX</a> |
+<a href="#jdorfxShapes">JDORFX Shapes</a> (<a href="#h2ShapeCommands">Shapes</a>, <a href="#h2PathCommands">Path2D</a>) |
+<a href="#h2ThreeDCommands">3D</a> |
+<a href="#h2AnimationCommands">Animation</a>
+</nav>
+<p></p>
+
+
+
+
+
+
+
+</body></html>

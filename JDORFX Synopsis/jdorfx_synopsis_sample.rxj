@@ -1,0 +1,63 @@
+#!/usr/bin/env rexx
+
+call addJdorFXHandler
+
+useRedirection? = .false
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
+
+width = 640
+height = 360
+newImage width height
+winTitle "JDORFX Synopsis"
+
+-- Draw two lines forming a big X
+drawLine (width - 1) (height - 1)
+color red
+moveTo (width - 1) 0
+position
+say "--> rc="pp(rc)
+drawLine 0 (height - 1)
+
+len = 50
+moveTo (width - len) / 2 (height - len) / 2
+color green
+fillRect len len
+stroke str3 3
+color blue
+drawRect len len
+
+color somePurple 0.498 0.180 0.435 1.0
+color
+say "--> rc="pp(rc)
+say "    rc~toString:" pp(rc~toString)
+moveTo 218 320
+drawString "Hello, Rexx world ... from JDORFX"
+
+-- Static JavaFX 3D scene-graph objects
+shape3d ball sphere 130 110 0 45
+shape3d cube box 320 105 0 80 80 80
+shape3d column cylinder 510 110 0 35 100
+rotate3dshape cube 25 320 105 0 0 1 0
+rotate3dshape cube (-15) 320 105 0 1 0 0
+fill3dshape ball
+fill3dshape cube
+fill3dshape column
+material ballMaterial orange
+material cubeMaterial mediumseagreen
+material columnMaterial cornflowerblue
+setMaterial ball ballMaterial
+setMaterial cube cubeMaterial
+setMaterial column columnMaterial
+
+winShow
+say "Press Enter to close."
+if useRedirection? then
+    sleep 5
+else
+    pull .
+winClose
+
+::requires "../samples/jdorfx.cls"
