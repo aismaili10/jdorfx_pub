@@ -264,6 +264,8 @@ import java.util.*;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 
 
 // ============================================================================
@@ -453,112 +455,112 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
     // default camera with position 0 0 0
     Camera defCamera = new ParallelCamera();
 
-    private static boolean changeScene = false;
-    public static synchronized void setChangeSceneTrue () {
+    private boolean changeScene = false;
+    public synchronized void setChangeSceneTrue () {
         changeScene = true;
     }
-    public static synchronized void setChangeSceneFalse () {
+    public synchronized void setChangeSceneFalse () {
         changeScene = false;
     }
-    private static String frameTitle = "JavaFXDrawingFrame";
+    private String frameTitle = "JavaFXDrawingFrame";
 
-    public static synchronized void renameFrame (String newTitle) {
+    public synchronized void renameFrame (String newTitle) {
         frameTitle = newTitle;
 
     }
 
-    static boolean changeFrame = false;
+    boolean changeFrame = false;
 
-    public static synchronized void setChangeFrameTrue () {
+    public synchronized void setChangeFrameTrue () {
         changeFrame = true;
     }
-    public static synchronized void setChangeFrameFalse () {
+    public synchronized void setChangeFrameFalse () {
         changeFrame = false;
     }
 
-    static boolean changeDecoration = false;
-    static boolean stageDecorated = true;
-    public static synchronized void setStageDecorated () {
+    boolean changeDecoration = false;
+    boolean stageDecorated = true;
+    public synchronized void setStageDecorated () {
         stageDecorated = true;
         changeDecoration = true;
     }
-    public static synchronized void setStageUndecorated () {
+    public synchronized void setStageUndecorated () {
         stageDecorated = false;
         changeDecoration = true;
     }
 
-    public static synchronized void setchangeDecorationFalse () {
+    public synchronized void setchangeDecorationFalse () {
         changeDecoration = false;
     }
 
-    static boolean changeBackFront = false;
+    boolean changeBackFront = false;
 
-    public static synchronized void setChangeBackFrontFalse () {
+    public synchronized void setChangeBackFrontFalse () {
         changeBackFront = false;
     }
 
-    static boolean winToFront = true;
+    boolean winToFront = true;
 
-    public static synchronized void setWinToFront () {
+    public synchronized void setWinToFront () {
         winToFront = true;
         winAlwaysOnTop = false;
         changeBackFront = true;
     }
 
-    public static synchronized void setWinToBack () {
+    public synchronized void setWinToBack () {
         winToFront = false;
         winAlwaysOnTop = false;
         changeBackFront = true;
     }
 
 
-    static boolean changeAlwaysOnTop = false;
-    public static synchronized void setChangeAlwaysOnTopFalse () {
+    boolean changeAlwaysOnTop = false;
+    public synchronized void setChangeAlwaysOnTopFalse () {
         changeAlwaysOnTop = false;
     }
-    static boolean winAlwaysOnTop = false;
+    boolean winAlwaysOnTop = false;
 
-    public static synchronized void setWinAlwaysOnTopTrue () {
+    public synchronized void setWinAlwaysOnTopTrue () {
         winAlwaysOnTop = true;
         changeAlwaysOnTop = true;
     }
-    public static synchronized void setWinAlwaysOnTopFalse () {
+    public synchronized void setWinAlwaysOnTopFalse () {
         winAlwaysOnTop = false;
         changeAlwaysOnTop = true;
     }
 
 
 
-    static boolean fxFrameResizable = false;
-    public static synchronized void setFxFrameResizable () {
+    boolean fxFrameResizable = false;
+    public synchronized void setFxFrameResizable () {
         fxFrameResizable = true;
     }
-    public static synchronized void setFxFrameNonResizable () {
+    public synchronized void setFxFrameNonResizable () {
         fxFrameResizable = false;
     }
 
-    static int frameX = 0;
-    static int frameY = 0;
-    static boolean changeFrameLocation = false;
+    int frameX = 0;
+    int frameY = 0;
+    boolean changeFrameLocation = false;
 
 
-    public static synchronized void moveFrame (int x, int y) {
+    public synchronized void moveFrame (int x, int y) {
         frameX = x;
         frameY = y;
         changeFrameLocation = true;
     }
 
-    public static synchronized void frameMoved () {
+    public synchronized void frameMoved () {
         changeFrameLocation = false;
     }
 
 
-    private static boolean fxVisible = false;
+    private boolean fxVisible = false;
 
-    public static synchronized void showFrame () {
+    public synchronized void showFrame () {
         fxVisible = true;
     }
-    public static synchronized void hideFrame () {
+    public synchronized void hideFrame () {
         fxVisible = false;
     }
 
@@ -569,7 +571,8 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
         Stage newStage = new Stage();
         newStage.initStyle(stageDecorated ? StageStyle.DECORATED : StageStyle.UNDECORATED);
         newStage.setOnCloseRequest(event -> {
-            Platform.exit();
+            fxVisible=false;
+            activeHandlers.remove(this);
         });
         newStage.setScene(scene);
         newStage.setTitle(frameTitle);
@@ -896,14 +899,16 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
     int printPosY=0;
     double printScaleX=1.0;
     double printScaleY=1.0;
+    String currCompositeRule="SRC_OVER";
+    double currCompositeAlpha=1.0;
 
 
-    static boolean fxWinUpdate = true;
+    boolean fxWinUpdate = true;
 
-    public static synchronized void setFXWinUpdateTrue () {
+    public synchronized void setFXWinUpdateTrue () {
         fxWinUpdate = true;
     }
-    public static synchronized void setFXWinUpdateFalse () {
+    public synchronized void setFXWinUpdateFalse () {
         fxWinUpdate = false;
     }
 
@@ -964,6 +969,8 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
         printPosY=0;
         printScaleX=1.0;
         printScaleY=1.0;
+        currCompositeRule="SRC_OVER";
+        currCompositeAlpha=1.0;
 
         if (canGC!=null)
         {
@@ -1005,29 +1012,45 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
     }
 
 
-// initialize FX Thread
-    Thread init_fx = new Thread(new Runnable() {
+    private static Thread initFxThread;
+    private static volatile Throwable fxStartupFailure;
+    private static final CountDownLatch fxReady = new CountDownLatch(1);
+    private static final CopyOnWriteArrayList<JavaFXDrawingHandler> activeHandlers = new CopyOnWriteArrayList<>();
+    private static final ConcurrentLinkedDeque<Scene> deque = new ConcurrentLinkedDeque<>();
 
-        @Override
-        public void run() {
-            try {
-
-                Application.launch(JavaFXDrawingHandler.class);
-
-            } catch (IllegalStateException e) {
-                throw new IllegalThreadStateException("JavaFX Application Thread could not be initialized");
-
-            }
-            // only reaches when application thread is closed
-            // stop  programm
-            System.exit(0);
-
+    private static synchronized void ensureFxApplicationStarted()
+    {
+        if (initFxThread==null)
+        {
+            initFxThread=new Thread(() -> {
+                try
+                {
+                    Application.launch(JavaFXDrawingHandler.class);
+                }
+                catch (Throwable t)
+                {
+                    fxStartupFailure=t;
+                    fxReady.countDown();
+                }
+            },"JDORFX-Launcher");
+            initFxThread.setDaemon(true);
+            initFxThread.start();
         }
 
-    });
-
-    // stores scenes and their changes
-    public static ConcurrentLinkedDeque<Scene> deque = new ConcurrentLinkedDeque<Scene>();
+        try
+        {
+            fxReady.await();
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            throw new IllegalThreadStateException("JavaFX Application Thread could not be initialized");
+        }
+        if (fxStartupFailure!=null)
+        {
+            throw new IllegalThreadStateException("JavaFX Application Thread could not be initialized: "+fxStartupFailure);
+        }
+    }
 
     /** Callback method of this command handler.
      *
@@ -1038,17 +1061,8 @@ public class JavaFXDrawingHandler extends Application implements RexxRedirecting
     public Object handleCommand(Object slot, String address, String command)
     {
 
-        //initialize FX Thread while processing first command
-        if (init_fx.isAlive() == false) {
-
-            init_fx.start();
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new IllegalThreadStateException("JavaFX Application Thread could not be initialized");
-            }
-        }
+        ensureFxApplicationStarted();
+        activeHandlers.addIfAbsent(this);
 
         nrCommand++;        // increase counter
 
@@ -1077,16 +1091,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
         {
             res=processCommand(slot, address, command, nrCommand, null);
 
-        }
-
-        // store updated scene in ConcurrentLinkedDeque for FX GUI
-        // store more than one scene to prevent NullPointer Exception in GUI thread
-        if (deque.size() < 3 && fxframe != null) {
-            deque.add(fxframe);
-        }
-        else if (fxframe != null) {
-            deque.removeLast();            // remove elements to keep size of deque small
-            deque.add(fxframe);
         }
 
         // signal FX GUI to update
@@ -2363,6 +2367,39 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
 
                         return rop;
+                    }
+
+                case COMPOSITE:     // "composite [SRC_OVER [alpha]]"
+                    {
+                        if (arrCommand.length>3)
+                        {
+                            throw new IllegalArgumentException("this command needs no, one, or two arguments, received "+(arrCommand.length-1)+" instead");
+                        }
+
+                        resultValue=currCompositeRule+" "+currCompositeAlpha;
+                        if (arrCommand.length==1)
+                        {
+                            if (isOR) writeOutput(slot,canonical);
+                            return resultValue;
+                        }
+
+                        String rule=arrCommand[1].toUpperCase();
+                        if (!"SRC_OVER".equals(rule))
+                        {
+                            throw new IllegalArgumentException("JDORFX currently supports only the SRC_OVER composite rule; received \""+arrCommand[1]+"\"");
+                        }
+
+                        double alpha=arrCommand.length==3 ? Double.parseDouble(arrCommand[2]) : 1.0;
+                        if (alpha<0.0 || alpha>1.0)
+                        {
+                            throw new IllegalArgumentException("composite alpha must be between 0.0 and 1.0; received "+alpha);
+                        }
+
+                        currCompositeRule=rule;
+                        currCompositeAlpha=alpha;
+                        canGC.setGlobalAlpha(alpha);
+                        if (isOR) writeOutput(slot,canonical+" "+rule+(arrCommand.length==3 ? " "+alpha : ""));
+                        return resultValue;
                     }
 
                 case COLOR:         // "color  [colorNickName [r g b [a]]" query current color or set + define new color
@@ -7357,6 +7394,64 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
 
 
+    private void updateStageOnFxThread()
+    {
+        if (!changeScene || !fxWinUpdate || fxframe==null) return;
+
+        Scene scene=fxframe;
+        Stage stage=fxStage;
+        if (stage==null)
+        {
+            stage=new Stage();
+            stage.initStyle(stageDecorated ? StageStyle.DECORATED : StageStyle.UNDECORATED);
+            stage.setOnCloseRequest(event -> {
+                fxVisible=false;
+                activeHandlers.remove(this);
+            });
+            fxStage=stage;
+            setchangeDecorationFalse();
+        }
+        else if (changeFrame && changeDecoration && stage.isShowing())
+        {
+            stage=rebuildStage(stage,scene);
+            fxStage=stage;
+            setchangeDecorationFalse();
+        }
+
+        if (stage.getScene()!=scene) stage.setScene(scene);
+        stage.setTitle(frameTitle);
+        stage.sizeToScene();
+
+        if (changeFrame)
+        {
+            if (changeDecoration && !stage.isShowing())
+            {
+                stage.initStyle(stageDecorated ? StageStyle.DECORATED : StageStyle.UNDECORATED);
+                setchangeDecorationFalse();
+            }
+            if (changeBackFront)
+            {
+                if (winToFront) stage.toFront(); else stage.toBack();
+                setChangeBackFrontFalse();
+            }
+            if (changeAlwaysOnTop)
+            {
+                stage.setAlwaysOnTop(winAlwaysOnTop);
+                setChangeAlwaysOnTopFalse();
+            }
+            if (changeFrameLocation)
+            {
+                stage.setX(frameX);
+                stage.setY(frameY);
+                frameMoved();
+            }
+            stage.setResizable(fxFrameResizable);
+            if (fxVisible) stage.show(); else stage.hide();
+            setChangeFrameFalse();
+        }
+        setChangeSceneFalse();
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
 
@@ -7364,6 +7459,8 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
         // prevents closing of Thread when stage is hidden
         Platform.setImplicitExit(false);
+        stage.hide();
+        fxReady.countDown();
 
         // close application thread when window is closed
         stage.setOnCloseRequest(event -> {
@@ -7376,6 +7473,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                 Runnable updater = new Runnable() {
                     @Override
                     public void run() {
+
+                        for (JavaFXDrawingHandler handler : activeHandlers)
+                        {
+                            handler.updateStageOnFxThread();
+                        }
 
                         Stage stage = fxStage;
                         if (stage == null)
