@@ -4668,16 +4668,11 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         if (!near && distance<=camera.getNearClip())
                             throw new IllegalArgumentException("farClip must be greater than nearClip ("+camera.getNearClip()+")");
                         if (near) {
-                            System.out.println("Setting near clip to: " + distance);
                             camera.setNearClip(distance);
                         }
                         else {
-                            System.out.println("Setting far clip to: " + distance);
                             camera.setFarClip(distance);
                         }
-                        System.out.println("Near clip: " + camera.getNearClip());
-                        System.out.println("Far clip: " + camera.getFarClip());
-                        System.out.println("Is fixed eye at camera zero: " + ((PerspectiveCamera)camera).isFixedEyeAtCameraZero());
                     }
                     if (isOR)
                     {
@@ -6819,6 +6814,22 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         else if (arrCommand.length > 6) {
                             throw new IllegalArgumentException("invalid value for autoReverse argument: ["+arrCommand[6]+"], expected true/false");
                         }
+                        if (arrCommand.length > 7) {
+                            String orientation = arrCommand[7].toUpperCase().replace("-", "_");
+                            if ("ORTHOGONAL_TO_TANGENT".equals(orientation) || "ORTHOGONAL".equals(orientation)) {
+                                pathT.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+                            }
+                            else if ("NONE".equals(orientation)) {
+                                pathT.setOrientation(PathTransition.OrientationType.NONE);
+                            }
+                            else {
+                                throw new IllegalArgumentException("invalid path orientation: ["+arrCommand[7]+"], expected NONE or ORTHOGONAL_TO_TANGENT");
+                            }
+                            if (isOR)
+                            {
+                                canonical = canonical+" "+orientation;
+                            }
+                        }
 
                         hmAnimations.put(animName.toUpperCase(), pathT);
                         
@@ -7076,33 +7087,34 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
                         break;
                     }
-                case KEYVALUE:  // "keyValue keyValueName [nodeName.]propertyName targetValue [interpolator]"
+                case KEYVALUE:  // "keyValue keyValueName nodeName propertyName targetValue [interpolator]"
                     {
-                        if (arrCommand.length < 4 || arrCommand.length > 5)
+                        if (arrCommand.length < 5 || arrCommand.length > 6)
                         {
-                            throw new IllegalArgumentException("this command needs 3 or 4 arguments (keyValueName [nodeName.]propertyName targetValue [interpolator]), received "+(arrCommand.length-1)+" instead");
+                            throw new IllegalArgumentException("this command needs 4 or 5 arguments (keyValueName nodeName propertyName targetValue [interpolator]), received "+(arrCommand.length-1)+" instead");
                         }
 
                         String keyValueName = arrCommand[1];
-                        String propertyToken = arrCommand[2];
-                        String targetToken = arrCommand[3];
-                        String interpolatorToken = arrCommand.length == 5 ? arrCommand[4] : null;
+                        String nodeName = arrCommand[2];
+                        String propertyName = arrCommand[3];
+                        String targetToken = arrCommand[4];
+                        String interpolatorToken = arrCommand.length == 6 ? arrCommand[5] : null;
 
-                        KeyValue keyValue = createKeyValueFromTokens(slot, propertyToken, targetToken, interpolatorToken);
+                        KeyValue keyValue = createKeyValueFromTokens(slot, nodeName, propertyName, targetToken, interpolatorToken);
                         hmKeyValues.put(keyValueName.toUpperCase(), keyValue);
                         resultValue = keyValue;
 
                         if (isOR)
                         {
-                            writeOutput(slot, canonical+" "+keyValueName+" "+propertyToken+" "+targetToken + (interpolatorToken!=null ? " "+interpolatorToken : ""));
+                            writeOutput(slot, canonical+" "+keyValueName+" "+nodeName+" "+propertyName+" "+targetToken + (interpolatorToken!=null ? " "+interpolatorToken : ""));
                         }
                         break;
                     }
-                case KEYFRAME:  // "keyframe timelineName time keyValueName" OR "keyframe timelineName time [nodeName.]propertyName targetValue [interpolator]"
+                case KEYFRAME:  // "keyframe timelineName time keyValueName" OR "keyframe timelineName time keyValueArray"
                     {
-                        if (arrCommand.length < 4 || arrCommand.length > 6)
+                        if (arrCommand.length != 4)
                         {
-                            throw new IllegalArgumentException("this command needs 3 to 5 arguments (timelineName time keyValueName | [nodeName.]propertyName targetValue [interpolator]), received "+(arrCommand.length-1)+" instead");
+                            throw new IllegalArgumentException("this command needs exactly 3 arguments (timelineName time keyValueNameOrArray), received "+(arrCommand.length-1)+" instead");
                         }
 
                         String timelineName = arrCommand[1];
@@ -7113,34 +7125,39 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                         }
 
                         double timeMs = Double.parseDouble(arrCommand[2]);
-                        KeyValue keyValue;
+                        KeyFrame keyFrame;
 
-                        if (arrCommand.length == 4)
+                        String keyValueName = arrCommand[3];
+                        KeyValue keyValue = hmKeyValues.get(keyValueName.toUpperCase());
+                        if (keyValue != null)
                         {
-                            String keyValueName = arrCommand[3];
-                            keyValue = hmKeyValues.get(keyValueName.toUpperCase());
-                            if (keyValue == null)
-                            {
-                                throw new IllegalArgumentException("no keyValue with name \""+keyValueName+"\" found");
-                            }
-                            if (isOR)
-                            {
-                                canonical = canonical+" "+timelineName+" "+timeMs+" "+keyValueName;
-                            }
+                            keyFrame = new KeyFrame(Duration.millis(timeMs), keyValue);
                         }
                         else
                         {
-                            String propertyToken = arrCommand[3];
-                            String targetToken = arrCommand[4];
-                            String interpolatorToken = arrCommand.length == 6 ? arrCommand[5] : null;
-                            keyValue = createKeyValueFromTokens(slot, propertyToken, targetToken, interpolatorToken);
-                            if (isOR)
+                            Object contextVariable = getContextVariable(slot, keyValueName);
+                            if (!(contextVariable instanceof KeyValue[]))
                             {
-                                canonical = canonical+" "+timelineName+" "+timeMs+" "+propertyToken+" "+targetToken + (interpolatorToken!=null ? " "+interpolatorToken : "");
+                                throw new IllegalArgumentException("no keyValue or keyValue[] with name \""+keyValueName+"\" found");
                             }
+                            KeyValue[] keyValueArray = (KeyValue[]) contextVariable;
+                            if (keyValueArray.length == 0)
+                            {
+                                throw new IllegalArgumentException("keyValue[] with name \""+keyValueName+"\" is empty");
+                            }
+                            for (int i = 0; i < keyValueArray.length; i++)
+                            {
+                                if (keyValueArray[i] == null)
+                                {
+                                    throw new IllegalArgumentException("keyValue[] with name \""+keyValueName+"\" contains null element at index "+i);
+                                }
+                            }
+                            keyFrame = new KeyFrame(Duration.millis(timeMs), keyValueArray);
                         }
-
-                        KeyFrame keyFrame = new KeyFrame(Duration.millis(timeMs), keyValue);
+                        if (isOR)
+                        {
+                            canonical = canonical+" "+timelineName+" "+timeMs+" "+keyValueName;
+                        }
                         timeline.getKeyFrames().add(keyFrame);
                         hmAnimations.put(timelineName.toUpperCase(), timeline);
                         resultValue = keyFrame;
@@ -7486,56 +7503,6 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
 
     }
 
-    private Node resolveNodeForAnimationProperty(String propertyToken)
-    {
-        if (propertyToken!=null && propertyToken.indexOf('.')>0)
-        {
-            String nodeName = propertyToken.substring(0, propertyToken.indexOf('.'));
-            Node node = hmFXShapes.get(nodeName.toUpperCase());
-            if (node == null)
-            {
-                node = hm3DShapes.get(nodeName.toUpperCase());
-            }
-            if (node == null)
-            {
-                node = hmCamera.get(nodeName.toUpperCase());
-            }
-            if (node == null)
-            {
-                node = hmLightBase.get(nodeName.toUpperCase());
-            }
-            if (node != null)
-            {
-                return node;
-            }
-        }
-
-        if (fxframe != null)
-        {
-            List<Node> shapeChildren = fxframe.shapeGroup.getChildren();
-            if (!shapeChildren.isEmpty())
-            {
-                return shapeChildren.get(shapeChildren.size()-1);
-            }
-
-            List<Node> shape3DChildren = fxframe.shape3DGroup.getChildren();
-            if (!shape3DChildren.isEmpty())
-            {
-                return shape3DChildren.get(shape3DChildren.size()-1);
-            }
-        }
-
-        if (!hmFXShapes.isEmpty())
-        {
-            return hmFXShapes.values().iterator().next();
-        }
-        if (!hm3DShapes.isEmpty())
-        {
-            return hm3DShapes.values().iterator().next();
-        }
-        return null;
-    }
-
     /** Resolves every named JavaFX Node registry accepted by node-based animations. */
     private Node resolveNamedAnimationNode(String nodeName)
     {
@@ -7547,10 +7514,8 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
         return node;
     }
 
-    private String normalizePropertyName(String propertyToken)
+    private String normalizePropertyName(String propertyName)
     {
-        int dotPos = propertyToken.indexOf('.');
-        String propertyName = dotPos>0 ? propertyToken.substring(dotPos+1) : propertyToken;
         return propertyName.trim().toUpperCase().replace("_", "").replace("-", "");
     }
 
@@ -7627,15 +7592,15 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
         throw new IllegalArgumentException("unknown interpolator: ["+token+"]");
     }
 
-    private KeyValue createKeyValueFromTokens(Object slot, String propertyToken, String targetToken, String interpolatorToken)
+    private KeyValue createKeyValueFromTokens(Object slot, String nodeName, String propertyName, String targetToken, String interpolatorToken)
     {
-        Node node = resolveNodeForAnimationProperty(propertyToken);
+        Node node = resolveNamedAnimationNode(nodeName);
         if (node == null)
         {
-            throw new IllegalArgumentException("could not resolve target node for property ["+propertyToken+"]");
+            throw new IllegalArgumentException("could not resolve target node ["+nodeName+"]");
         }
 
-        String normalized = normalizePropertyName(propertyToken);
+        String normalized = normalizePropertyName(propertyName);
         WritableValue<?> writableValue = null;
         Object targetValue = null;
 
@@ -7649,13 +7614,19 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
                 writableValue = node.rotateProperty();
                 targetValue = Double.parseDouble(targetToken);
                 break;
-            case "TRANSLATEX":
             case "X":
+                writableValue = node instanceof Rectangle ? ((Rectangle) node).xProperty() : node.translateXProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "Y":
+                writableValue = node instanceof Rectangle ? ((Rectangle) node).yProperty() : node.translateYProperty();
+                targetValue = Double.parseDouble(targetToken);
+                break;
+            case "TRANSLATEX":
                 writableValue = node.translateXProperty();
                 targetValue = Double.parseDouble(targetToken);
                 break;
             case "TRANSLATEY":
-            case "Y":
                 writableValue = node.translateYProperty();
                 targetValue = Double.parseDouble(targetToken);
                 break;
@@ -7680,7 +7651,7 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
             case "FILLCOLOR":
                 if (!(node instanceof Shape))
                 {
-                    throw new IllegalArgumentException("property ["+propertyToken+"] requires a 2D Shape node");
+                    throw new IllegalArgumentException("property ["+propertyName+"] requires a 2D Shape node");
                 }
                 writableValue = ((Shape) node).fillProperty();
                 targetValue = resolveColorFromToken(slot, targetToken);
@@ -7689,13 +7660,13 @@ if (bDebug)    System.err.println("[JavaFXDrawingHandler].handleCommand(slot, ad
             case "STROKECOLOR":
                 if (!(node instanceof Shape))
                 {
-                    throw new IllegalArgumentException("property ["+propertyToken+"] requires a 2D Shape node");
+                    throw new IllegalArgumentException("property ["+propertyName+"] requires a 2D Shape node");
                 }
                 writableValue = ((Shape) node).strokeProperty();
                 targetValue = resolveColorFromToken(slot, targetToken);
                 break;
             default:
-                throw new IllegalArgumentException("unknown keyframe property: ["+propertyToken+"]");
+                throw new IllegalArgumentException("unknown keyframe property: ["+propertyName+"]");
         }
 
         Interpolator interpolator = resolveInterpolator(interpolatorToken);
@@ -8288,7 +8259,7 @@ enum EnumCommand {
     ANIMATION_STROKE            ("animationStroke"           ) ,    //   "animationStroke animName shapeName duration [fromColor] [toColor] [cycleCount] [autoReverse]"
     ANIMATION_SCALE             ( "animationScale"           ) ,    //   "animationScale animName nodeName duration [byX byY|toX toY] [cycleCount] [autoReverse]"
     ANIMATION_TRANSLATE         ( "animationTranslate"       ) ,    //   "animationTranslate animName nodeName duration [byX byY|toX toY] [cycleCount] [autoReverse]"
-    ANIMATION_PATH              ( "animationPath"            ) ,    //   "animationPath animName nodeName duration pathName [cycleCount] [autoReverse]"
+    ANIMATION_PATH              ( "animationPath"            ) ,    //   "animationPath animName nodeName duration pathName [cycleCount] [autoReverse] [orientation]"
     ANIMATION_SEQUENTIAL        ( "animationSequential"      ) ,    //   "animationSequential animName animName1 animName2 ..." defines a sequential animation
     ANIMATION_PARALLEL          ( "animationParallel"        ) ,    //   "animationParallel animName animName1 animName2 ..." defines a parallel animation
     ANIMATION_PAUSE_TRANSITION  ( "animationPauseTransition" ) ,    //   "animationPauseTransition animName" pauses the transition of the animation, i.e. freezes it at current state; if already paused, resumes it
@@ -8298,8 +8269,8 @@ enum EnumCommand {
     ANIMATION_STOP              ( "animationStop"            ) ,    //   "animationStop animName"
     ANIMATION_STATUS            ( "animationStatus"          ) ,    //   "animationStatus animName" returns status (RUNNING, PAUSED, STOPPED)
     TIMELINE                    ( "timeline"                 ) ,    //   "timeline timelineName [cycleCount] [autoReverse]"
-    KEYFRAME                    ( "keyframe"                 ) ,    //   "keyframe timelineName time keyValueName" OR "keyframe timelineName time [nodeName.]propertyName targetValue [interpolator]"
-    KEYVALUE                    ( "keyValue"                 ) ,    //   "keyValue keyValueName [nodeName.]propertyName targetValue [interpolator]"
+    KEYFRAME                    ( "keyframe"                 ) ,    //   "keyframe timelineName time keyValueNameOrArray"
+    KEYVALUE                    ( "keyValue"                 ) ,    //   "keyValue keyValueName nodeName propertyName targetValue [interpolator]"
 
     NO_OP                       ( "noOp"                     )      // last element, doing nothing
                                ;
@@ -8553,4 +8524,3 @@ enum EnumShape {
         }
     }
 }
-
