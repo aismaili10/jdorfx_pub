@@ -28,9 +28,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Scale Transition on 2D Shapes"
+say "-- Example: Scale Transition on 2D Shapes"
 newImage 550 550
 winTitle "JDORFX Animation - Scale Transition"
 
@@ -104,9 +108,12 @@ do i = 1 to 12
    animationPlay "scaleAnim" || i
 end
 
-say "2D Shapes scale transition ..."
-say "Press Enter to exit..."
-pull .
+say "-- 2D Shapes scale transition ..."
+say "-- Press Enter to exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 do i = 1 to 12
     animationStop "scaleAnim" || i
@@ -114,7 +121,7 @@ end
 
 winClose
 
-say "Animation completed!"
+say "-- Animation completed!"
 
 exit 0
 

@@ -27,7 +27,11 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx with output using (.stdout) error using (.stderr)
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 newimage 700 450 .true
 background lightblue
@@ -52,8 +56,11 @@ setCamera view
 
 winTitle "PerspectiveCamera: nearClip=50, farClip=1100"
 winShow
-say "Only the middle box is inside the clipping interval. Press Enter."
-pull .
+say "-- Only the middle box is inside the clipping interval. Press Enter."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 winClose
 
 exit 0

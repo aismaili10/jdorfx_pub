@@ -1,7 +1,12 @@
+#!/usr/bin/env rexx
 
 
 call addJdorFXHandler JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 newImage 720 240
 winTitle "JDORFX Test: pathAppend closed/open"
@@ -38,7 +43,10 @@ drawShape pathC
 
 winshow
 
-pull .
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 exit 0
 

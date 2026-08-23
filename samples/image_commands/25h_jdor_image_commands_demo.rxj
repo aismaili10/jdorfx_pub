@@ -3,7 +3,7 @@
    license Code:
 
     ------------------------ Apache Version 2.0 license -------------------------
-       Copyright (C) 2026 Alireza Ismaili
+       Copyright (C) 2026 Alireza Ismaili, Rony G. Flatscher
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -20,6 +20,14 @@
 
 */
 
+/*
+   Usage: rexx 25h_jdor_image_commands_demo.rxj [ClipboardDemo] [PrintDemo] [otherToRediret]
+          ... arguments may use first letter only (any argument activates redirection)
+              ...  C ... run clipboard demo
+                   P ... run printer demo
+                   else run stdout and stderr redirection
+*/
+
 /* ========================================================================
    JDOR Image Example: Image Commands Integration Demo
    ======================================================================== */
@@ -31,14 +39,35 @@
 
 -- Set either flag to .true to enable the corresponding external operation.
 runClipboardDemo = .false
-runPrinterDemo   = .false
+runPrinterDemo   = .false -- dflt printer must be set
+useRedirection?  = .false
+
+-- if command-line arguments, then a) use redirection, and b) process arguments
+parse upper arg opt1 opt2 .
+if opt1<>"" then
+do
+   useRedirection? = .true    -- we use stdout and stderr redirection for this run
+      -- check first letter
+   pos1 = pos(opt1~left(1),"CP") -- first letter
+   pos2 = pos(opt2~left(1),"CP") -- first letter
+   runClipboardDemo = (pos1=1 | pos2=1)   -- clipboard demo
+   runPrinterDemo   = (pos1=2 | pos2=2)   -- printer demo
+end
+
+say "settings in effect:"
+say "   use redirection?" useRedirection?
+say "   clipboard demo? " runClipboardDemo
+say "   printer demo?   " runPrinterDemo
+
 
 -- create JDOR handler
-jdor = .bsf~new("org.oorexx.handlers.jdor.JavaDrawingHandler")
--- add the Java Rexx command handler, using default name: JDOR
-call BsfCommandHandler "add", "JDOR", jdor
+-- load and add the Java Rexx command handler, using default name: JDOR
+call addJdorHandler
 -- set default environment to JDOR
-address jdor
+if useRedirection? then
+   address jdor with output using (.output) error using (.error)
+else
+   address jdor
 
 -- Create a normal JDOR drawing.
 newimage 900 560
@@ -150,10 +179,12 @@ else say "Printer demo skipped; set runPrinterDemo=.true to enable it"
 
 winShow
 say "The completed image is displayed. Press Enter to exit."
-pull .
+if useRedirection? then
+    sleep 5
+else
+    pull .
 winClose
 
 exit 0
 
--- get ooRexx-Java bridge
-::requires "BSF.CLS"
+::requires "jdor.cls"

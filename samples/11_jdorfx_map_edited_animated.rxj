@@ -24,9 +24,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Create a new scene with 3D shapes and edited png maps"
+say "-- Create a new scene with 3D shapes and edited png maps"
 -- creating a new window with size 500 x 500
 newimage 500 500
 -- create different 3D shapes
@@ -106,11 +110,12 @@ setmaterial cylinder3 cylinderMaterial3
 -- show created window
 winshow
 secs=5
-say
-say "sleeping for" secs "seconds, then starting a few animations ..."
+say "--"
+
+say "-- sleeping for" secs "seconds, then starting a few animations ..."
 sleep secs
 
--- 20240503: Bonus für Herrn Schaller! 8-)
+-- 20240503: Bonus fï¿½r Herrn Schaller! 8-)
 clzDuration=bsf.importClass("javafx.util.Duration")
 duration=clzDuration~seconds(secs)
 
@@ -133,9 +138,12 @@ do counter c1 shape over shapes
       -- send PLAY on the FX GUI thread
    .fxGuiThread~runLater(rt, "play")
 end
-say "press <enter> to end program"
-parse pull .
-say "Done."
+say "-- press <enter> to end program"
+if useRedirection? then
+    sleep 5
+else
+    pull .
+say "-- Done."
 
 
 

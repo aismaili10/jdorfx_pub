@@ -28,9 +28,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Sequential Animation"
+say "-- Example: Sequential Animation"
 newimage 500 500
 winTitle "JDORFX Animation - Sequential Animation"
 
@@ -77,13 +81,16 @@ setcamera camera
 
 winShow
 
-say "Box animation sequential ..."
-say "Press Enter to exit..."
-pull .
+say "-- Box animation sequential ..."
+say "-- Press Enter to exit..."
+if useRedirection? then
+    sleep 15
+else
+    pull .
 
 animationStop seqAnim
 
-say "Animation completed!"
+say "-- Animation completed!"
 
 exit 0
 

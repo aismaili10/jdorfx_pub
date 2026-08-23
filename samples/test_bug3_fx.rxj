@@ -1,7 +1,12 @@
+#!/usr/bin/env rexx
 
 call addJdorfxHandler "JDORFX"
 
-address JDORFX        -- set default environment to the JDORFX command handler
+useRedirection? = .false
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 newImage 500 500
 winTitle "JDORFX Test: pathAppend: Arc shape"
@@ -88,7 +93,10 @@ drawShape line3
 
 winShow
 
-pull .
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 exit 0
 

@@ -29,9 +29,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Create a new scene with 3D shapes and edited png maps"
+say "-- Create a new scene with 3D shapes and edited png maps"
 -- creating a new window with size 500 x 500
 newimage 500 500
 -- create different 3D shapes
@@ -111,8 +115,8 @@ setmaterial cylinder3 cylinderMaterial3
 -- show created window
 winshow
 secs=3
-say
-say "sleeping for" secs "seconds, then starting a few animations ..."
+say "-- "
+say "-- sleeping for" secs "seconds, then starting a few animations ..."
 sleep secs
 
 objects = .Array~of("box1", "box2", "box3", "sphere1", ,
@@ -132,8 +136,11 @@ do i = 1 to 9
 end
 
 
-say "Press Enter to exit..."
-pull .
+say "-- Press Enter to exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 do i = 1 to 9
     animationStop "rotateAnim" || i

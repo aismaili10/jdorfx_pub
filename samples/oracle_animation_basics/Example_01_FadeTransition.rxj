@@ -27,9 +27,13 @@
 -- Load and register the Java Rexx command handler under its default name JDORFX.
 call addJdorFXHandler
 -- Send the following graphics commands to the JDORFX handler.
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Oracle Example 3-1: Fade Transition"
+say "-- Oracle Example 3-1: Fade Transition"
 -- Create a 420 x 280 drawing surface, set its title, and paint it white.
 newimage 420 280
 winTitle "Oracle JavaFX 8 - Fade Transition (JDORFX)"
@@ -50,8 +54,11 @@ animationPlay fadeTransition
 
 -- Display the window and keep the Rexx program alive until Enter is pressed.
 winshow
-say "Press Enter to stop and exit..."
-pull .
+say "-- Press Enter to stop and exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 -- Stop the animation explicitly before closing the window.
 animationStop fadeTransition
 winclose

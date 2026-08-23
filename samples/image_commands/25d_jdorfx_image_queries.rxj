@@ -28,36 +28,40 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 -- Query the dimensions of the current image.
 newimage 80 60
 imageSize
-say "Current image dimensions:" rc
+say "-- Current image dimensions:" rc
 
 -- Return the current image as a BufferedImage.
 image
 currentImage = rc
-say "Current BufferedImage dimensions:" currentImage~getWidth currentImage~getHeight
+say "-- Current BufferedImage dimensions:" currentImage~getWidth currentImage~getHeight
 
 -- Query a registered image.
 loadImage OOREXX_LOGO "../oorexx_256.png"
 image OOREXX_LOGO
 logoImage = rc
 imageSize OOREXX_LOGO
-say "Registered image dimensions:" rc
+say "-- Registered image dimensions:" rc
 
 -- Copy the registered image and query the Rexx variable containing the copy.
 imageCopy OOREXX_LOGO
 logoCopy = rc
 imageSize "logoCopy"
-say "Copied Rexx-variable image dimensions:" rc
+say "-- Copied Rexx-variable image dimensions:" rc
 
 -- Copy the image onto an opaque white background.
 imageCopy OOREXX_LOGO WHITE
 flattenedCopy = rc
 imageSize "flattenedCopy"
-say "Background copy dimensions:" rc
+say "-- Background copy dimensions:" rc
 
 exit 0
 

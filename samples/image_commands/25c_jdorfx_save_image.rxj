@@ -28,7 +28,11 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 -- Create a small red image.
 newimage 64 48
@@ -39,7 +43,7 @@ fillRect 64 48
 -- Save the current image in the format inferred from the file extension.
 -- Parameters: pathName
 saveImage "25c_jdorfx_saved_image.png"
-say "Image saved:" rc
+say "-- Image saved:" rc
 
 exit 0
 

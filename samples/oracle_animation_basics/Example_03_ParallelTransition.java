@@ -1,5 +1,3 @@
-package oracle_animation_basics;
-
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.RotateTransition;

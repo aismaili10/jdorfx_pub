@@ -24,9 +24,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Create a scene with the default parallel camera"
+say "-- Create a scene with the default parallel camera"
 -- creating a new window with size 500 x 500
 newimage 500 500
 -- show created window
@@ -45,25 +49,25 @@ fill3dshape mySphere
 draw3dshape myBox
 -- place myCylinder onto scene with filled vertices; also: fillshape3d
 fill3dshape myCylinder
-say
-say "Hint: by default a parallel camera gets used"
-say "Sleep for 5 seconds"
+say "-- "
+say "-- Hint: by default a parallel camera gets used"
+say "-- Sleep for 5 seconds"
 sleep 5
 
 -- demonstrate usage of a parallel camera
-   say "Create a new parallel camera named 'parallelCamera':"
-   say "   Location: x=0 y=100 z=-200"
-   say "   Note: The z variable has no impact on a parallel camera"
+   say "-- Create a new parallel camera named 'parallelCamera':"
+   say "--    Location: x=0 y=100 z=-200"
+   say "--    Note: The z variable has no impact on a parallel camera"
    --create parallelCamera
    camera parallelCamera parallel 0 100 (-200)
    -- set view to parallelCamera
    setcamera  parallelCamera
    sleep 5
 
-   say "Creating parallel cameras with different x, y and z locations:"
+   say "-- Creating parallel cameras with different x, y and z locations:"
    do counter k i=0 to 200 by 50
       name=parallelCamera||k
-      say "x="i "y="i "z="i
+      say "-- x="i "y="i "z="i
       camera name parallel i i i
       setcamera name
       sleep 0.5
@@ -71,7 +75,7 @@ sleep 5
 
    do counter k i=0 to -200 by -50
       name=parallelCamera||k
-      say "x="i "y="i "z="i
+      say "-- x="i "y="i "z="i
       camera name parallel i i i
       setcamera name
       sleep 0.5
@@ -79,40 +83,40 @@ sleep 5
 --
 
 
-say "Creating a perspective camera  named 'perspectiveCamera1':"
-say "   Location: x=-50 y=-100 z=-100, default fieldOfView=30"
+say "-- Creating a perspective camera  named 'perspectiveCamera1':"
+say "--    Location: x=-50 y=-100 z=-100, default fieldOfView=30"
 --create perspectiveCamera1
 camera perspectiveCamera1 perspective (-50) (-100) (-100)
 -- set view to perspectiveCamera1
 setcamera  perspectiveCamera1
-say
-say "Sleep for 5 seconds"
+say "-- "
+say "-- Sleep for 5 seconds"
 sleep 5
-say "Create a new perspective camera named 'perspectiveCamera2':"
-say "   Location: x=200 y=0 z=-50, fieldOfView=150"
+say "-- Create a new perspective camera named 'perspectiveCamera2':"
+say "--    Location: x=200 y=0 z=-50, fieldOfView=150"
 --create perspectiveCamera2
 camera perspectiveCamera2 perspective 200 0 (-50) 150
 -- set view to perspectiveCamera1
 setcamera  perspectiveCamera2
-say
-say "Sleep for 5 seconds"
+say "-- "
+say "-- Sleep for 5 seconds"
 sleep 5
 
-say "Create parallel camera named 'parallelCamera' (from above):"
-say "   Location: x=0 y=0 z=-0"
-say "   Note: The z variable has no impact on a parallel camera"
+say "-- Create parallel camera named 'parallelCamera' (from above):"
+say "--    Location: x=0 y=0 z=-0"
+say "--    Note: The z variable has no impact on a parallel camera"
 --create parallelCamera
 camera parallelCamera2 parallel 0 0 0
 -- set view to parallelCamera
 setcamera  parallelCamera
-say
-say "Sleep for 5 seconds"
+say "-- "
+say "-- Sleep for 5 seconds"
 sleep 5
 --
-   say "Creating perspective cameras with different x, y and z locations and fieldOfViews:"
+   say "-- Creating perspective cameras with different x, y and z locations and fieldOfViews:"
    do counter k i=0 to 100 by 20
       name=perspCamera||k
-      say "x="i "y="i "z="i "fieldOfView="i
+      say "-- x="i "y="i "z="i "fieldOfView="i
       camera name perspective i i i (i*2)
       setcamera name
       sleep 0.5
@@ -120,12 +124,12 @@ sleep 5
 
    do counter k i=0 to -100 by -20
       name=perspCamera||k
-      say "x="i "y="i "z="i "fieldOfView="i
+      say "-- x="i "y="i "z="i "fieldOfView="i
       camera name perspective i i i (i*2)
       setcamera name
       sleep 0.5
    end
-say "Sleep for 5 seconds, then ending"
+say "-- Sleep for 5 seconds, then ending"
 sleep 5
 --
 

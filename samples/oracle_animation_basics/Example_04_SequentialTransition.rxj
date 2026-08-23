@@ -27,9 +27,13 @@
 -- Load and register the Java Rexx command handler under its default name JDORFX.
 call addJdorFXHandler
 -- Send the following graphics commands to the JDORFX handler.
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Oracle Example 3-4: Sequential Transition"
+say "-- Oracle Example 3-4: Sequential Transition"
 -- Create the drawing surface and configure its window and background.
 newimage 520 300
 winTitle "Oracle JavaFX 8 - Sequential Transition (JDORFX)"
@@ -62,8 +66,11 @@ animationPlay sequentialTransition
 
 -- Display the window and keep the Rexx program alive until Enter is pressed.
 winshow
-say "Press Enter to stop and exit..."
-pull .
+say "-- Press Enter to stop and exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 animationStop sequentialTransition
 winclose
 exit 0

@@ -31,9 +31,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Path Animation"
+say "-- Example: Path Animation"
 newimage 850 900 .true
 winTitle "JDORFX Animation - Path Animation"
 
@@ -128,8 +132,8 @@ end
 animationStop pathAnim
 animationStop rotateAnim
 
-say "Animation completed!"
-say "Ending program..."
+say "-- Animation completed!"
+say "-- Ending program..."
 exit 0
 
 -- get ooRexx-Java bridge, contains JDORFX Rexx command handler

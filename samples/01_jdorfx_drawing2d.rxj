@@ -24,9 +24,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Create a new scene and draw on canvas"
+say "-- Create a new scene and draw on canvas"
 -- creating a new window with size 500 x 500
 newimage 500 500
 -- draw filled polygon with nPoints taken from xPoints-array and yPoints-array
@@ -57,8 +61,8 @@ moveto 300 300
 drawroundrect 100 150 10 10
 -- show created window
 winshow
-say
-say "Sleep for 5 seconds and end program..."
+say "-- "
+say "-- Sleep for 5 seconds and end program..."
 sleep 5
 
 -- get ooRexx-Java bridge, contains JDORFX Rexx command handler

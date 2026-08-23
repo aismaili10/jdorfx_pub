@@ -29,9 +29,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .false
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Timeline / KeyFrame / KeyValue demo"
+say "-- Example: Timeline / KeyFrame / KeyValue demo"
 
 newimage 400 400
 winTitle "JDORFX Animation - Timeline KeyFrame KeyValue Demo"
@@ -53,35 +57,50 @@ fillshape rect4
 timeline loadingTimeline "-1" .false
 
 -- Add keyframes
-keyframe loadingTimeline 1 rect1.scaleX 1.0 LINEAR
-keyframe loadingTimeline 300 rect1.scaleX 0.20 LINEAR
-keyframe loadingTimeline 600 rect1.scaleX 1.0 LINEAR
+keyValue timelineKV1 rect1 scaleX 1.0 LINEAR
+keyframe loadingTimeline 1 timelineKV1
+keyValue timelineKV2 rect1 scaleX 0.20 LINEAR
+keyframe loadingTimeline 300 timelineKV2
+keyValue timelineKV3 rect1 scaleX 1.0 LINEAR
+keyframe loadingTimeline 600 timelineKV3
 
-keyframe loadingTimeline 150 rect3.scaleY 1.0 LINEAR
-keyframe loadingTimeline 450 rect3.scaleY 0.20 LINEAR
-keyframe loadingTimeline 750 rect3.scaleY 1.0 LINEAR
+keyValue timelineKV4 rect3 scaleY 1.0 LINEAR
+keyframe loadingTimeline 150 timelineKV4
+keyValue timelineKV5 rect3 scaleY 0.20 LINEAR
+keyframe loadingTimeline 450 timelineKV5
+keyValue timelineKV6 rect3 scaleY 1.0 LINEAR
+keyframe loadingTimeline 750 timelineKV6
 
-keyframe loadingTimeline 300 rect4.scaleX 1.0 LINEAR
-keyframe loadingTimeline 600 rect4.scaleX 0.20 LINEAR
-keyframe loadingTimeline 900 rect4.scaleX 1.0 LINEAR
+keyValue timelineKV7 rect4 scaleX 1.0 LINEAR
+keyframe loadingTimeline 300 timelineKV7
+keyValue timelineKV8 rect4 scaleX 0.20 LINEAR
+keyframe loadingTimeline 600 timelineKV8
+keyValue timelineKV9 rect4 scaleX 1.0 LINEAR
+keyframe loadingTimeline 900 timelineKV9
 
-keyframe loadingTimeline 450 rect2.scaleY 1.0 LINEAR
-keyframe loadingTimeline 750 rect2.scaleY 0.20 LINEAR
-keyframe loadingTimeline 1050 rect2.scaleY 1.0 LINEAR
+keyValue timelineKV10 rect2 scaleY 1.0 LINEAR
+keyframe loadingTimeline 450 timelineKV10
+keyValue timelineKV11 rect2 scaleY 0.20 LINEAR
+keyframe loadingTimeline 750 timelineKV11
+keyValue timelineKV12 rect2 scaleY 1.0 LINEAR
+keyframe loadingTimeline 1050 timelineKV12
 
 winshow
 
 animationPlay loadingTimeline
 
-say "Timeline demo is running..."
-say "Press Enter to stop animation and exit..."
-pull .
+say "-- Timeline demo is running..."
+say "-- Press Enter to stop animation and exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 animationStop loadingTimeline
 
 winClose
 
-say "Timeline demo completed!"
+say "-- Timeline demo completed!"
 
 exit 0
 

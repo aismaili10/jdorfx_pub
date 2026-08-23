@@ -1,0 +1,187 @@
+#!/usr/bin/env rexx
+/*
+   license Code:
+
+    ------------------------ Apache Version 2.0 license -------------------------
+       Copyright (C) 2026 Alireza Ismaili
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -----------------------------------------------------------------------------
+
+*/
+
+/* ========================================================================
+   JDORFX Practical Animation: CullFace from Moving Camera Viewpoints
+   ======================================================================== */
+call addJdorFXHandler
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
+
+newimage 900 650 .true
+background darkslategray
+
+-- Center the room at the origin so both camera paths lie in its z=0 plane.
+shape3d room box 0 0 0 800 560 600
+
+material roomMaterial
+materialMap roomMaterial diffuse "rock_diffuse.jpg"
+setmaterial room roomMaterial
+
+fillshape3d room
+cullFace room BACK
+
+
+-- A self-illuminated sphere marks the center of the room.
+shape3d sphere1 sphere 0 0 0 100
+
+material sphereMat
+materialmap sphereMat selfIllumination "sun_2k.jpg"
+materialmap sphereMat diffuse "sun_2k.jpg"
+setmaterial sphere1 sphereMat
+
+fillshape3d sphere1
+
+
+-- Four smaller spheres provide reference points outside the room.
+shape3d sphere2 sphere 500 0 0 50
+material sphereMaterial green
+setmaterial sphere2 sphereMaterial
+fillshape3d sphere2
+
+shape3d sphere3 sphere "-500" 0 0 50
+material sphereMaterial blue
+setmaterial sphere3 sphereMaterial
+fillshape3d sphere3
+
+shape3d sphere4 sphere 0 350 0 50
+material moonMat
+materialmap moonMat diffuse "moonmap4k.jpg"
+setmaterial sphere4 moonMat
+fillshape3d sphere4
+
+shape3d sphere5 sphere 0 "-350" 0 50
+material sphereMaterial orange
+setmaterial sphere5 sphereMaterial
+fillshape3d sphere5
+
+-- Put the first camera in the rooms middle Z plane.  Its pitch makes the XY
+-- paths read visually like horizontal movement around the room.
+camera view perspective 0 0 0 70 .true
+cameraNearClip view 0.1
+cameraFarClip view 3000
+-- The positive X rotation combines with tangent orientation to face inward.
+rotateCamera view 90 0 0 0 1 0 0
+setCamera view
+
+
+-- The second camera starts outside and later moves through the lower wall.
+camera view2 perspective 0 900 0 70 .true
+cameraNearClip view2 0.1
+cameraFarClip view2 3000
+rotateCamera view2 90 0 0 0 1 0 0
+
+
+-- Rectangular path centered on the origin.  It surrounds the room extents
+-- x=-400..400 and y=-280..280, keeping the camera outside on all four sides.
+-- animationPath changes X and Y only; the camera stays at z=0 while its
+-- 90-degree pitch creates the intended horizontal impression.
+shape orbitPath rectangle "-900" "-700" 1800 1400
+
+-- Move parallel to the rooms lower face.  At y=700 the camera stays outside;
+-- its positive 90-degree pitch points it along -Y toward the box while X changes.
+shape sidePath line "-900" 700 900 700
+animationPath cameraJourney view 10000 sidePath "-1" .true ORTHOGONAL_TO_TANGENT
+
+-- Continuously follow the rectangular perimeter, reversing after each cycle.
+animationPath cameraJourney2 view 20000 orbitPath "-1" .true ORTHOGONAL_TO_TANGENT
+
+winShow
+winTitle "CullFace BACK: camera follows the room perimeter"
+animationPlay cameraJourney2
+
+say "-- BACK: exterior faces render while the camera follows the perimeter."
+say "-- Press Enter to apply FRONT culling."
+pull .
+
+cullFace room FRONT
+winTitle "CullFace FRONT: camera follows the room perimeter"
+
+say "-- FRONT: outward-facing room surfaces are culled."
+say "-- Press Enter to add point and ambient lighting."
+pull .
+light pLight point 0 200 0 yellow
+setLight pLight turnOn
+light ambientLight ambient white
+setLight ambientLight turnOn
+
+say "-- Lighting makes rendered materials and reference objects easier to distinguish."
+say "-- Press Enter to apply NONE culling."
+pull .
+cullFace room NONE
+winTitle "CullFace NONE: camera follows the room perimeter"
+
+-- --------------------------------------------------------------------------
+
+say "-- NONE: both face orientations render."
+say "-- Press Enter for a side-to-side pass with BACK culling."
+pull .
+cullFace room BACK
+winTitle "CullFace BACK: camera moves along the room face"
+animationStop cameraJourney2
+animationPlay cameraJourney
+
+say "-- BACK: the camera remains outside and faces the room during the pass."
+say "-- Press Enter to apply FRONT culling."
+pull .
+cullFace room FRONT
+winTitle "CullFace FRONT: camera moves along the room face"
+
+say "-- FRONT: the room's outward-facing surfaces disappear during the pass."
+say "-- Press Enter to apply NONE culling."
+pull .
+cullFace room NONE
+winTitle "CullFace NONE: camera moves along the room face"
+
+say "-- NONE: all room faces are retained."
+say "-- Press Enter for an outside-to-inside pass with BACK culling."
+pull .
+cullFace room BACK
+winTitle "CullFace BACK: camera moves outside -> inside -> outside"
+animationStop cameraJourney
+setCamera view2
+animationTranslate cameraJourney3 view2 20000 0 "-900" 0 "-1" .true -- move along Y
+animationPlay cameraJourney3
+
+say "-- BACK: exterior surfaces render; inside, back-facing walls disappear."
+say "-- Press Enter to apply FRONT culling."
+pull .
+cullFace room FRONT
+winTitle "CullFace FRONT: camera moves outside -> inside -> outside"
+
+say "-- FRONT: exterior front faces disappear; interior back faces remain."
+say "-- Press Enter to apply NONE culling."
+pull .
+cullFace room NONE
+winTitle "CullFace NONE: camera moves outside -> inside -> outside"
+
+say "-- NONE: both exterior and interior face orientations render."
+say "-- Press Enter to exit."
+pull .
+
+winClose
+exit 0
+
+::requires "jdorfx.cls"

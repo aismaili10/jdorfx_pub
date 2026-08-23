@@ -28,7 +28,11 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 -- Create a red image.
 newimage 20 10
@@ -39,9 +43,9 @@ fillRect 20 10
 -- Push a snapshot and also register it as SAVED_RED.
 pushImage SAVED_RED
 pushedImage = rc
-say "Pushed image dimensions:" pushedImage~getWidth pushedImage~getHeight
+say "-- Pushed image dimensions:" pushedImage~getWidth pushedImage~getHeight
 imageSize SAVED_RED
-say "Registered pushed image dimensions:" rc
+say "-- Registered pushed image dimensions:" rc
 
 -- Cover the current image with blue.
 color BLUE
@@ -53,9 +57,9 @@ popImage
 poppedImage = rc
 image
 currentImage = rc
-say "Popped image dimensions:" poppedImage~getWidth poppedImage~getHeight
-say "Popped image pixel:" poppedImage~getRGB(0, 0)
-say "Current image pixel after pop:" currentImage~getRGB(0, 0)
+say "-- Popped image dimensions:" poppedImage~getWidth poppedImage~getHeight
+say "-- Popped image pixel:" poppedImage~getRGB(0, 0)
+say "-- Current image pixel after pop:" currentImage~getRGB(0, 0)
 
 exit 0
 

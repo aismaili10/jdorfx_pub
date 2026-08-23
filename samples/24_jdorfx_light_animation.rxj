@@ -35,10 +35,14 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .false
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "JDORFX PointLight timeline animation"
-say "Press Enter to stop the animation and close the window."
+say "-- JDORFX PointLight timeline animation"
+say "-- Press Enter to stop the animation and close the window."
 
 newimage 800 450 .true
 winTitle "JDORFX - Animated PointLight"
@@ -76,15 +80,19 @@ setLight movingLight
 -- Move the PointLight from left to right and back forever.
 -- Timeline parameters: name, cycleCount, autoReverse
 timeline lightTimeline "-1" .true
--- Keyframe parameters: timelineName, time, node.property, targetValue,
---                      interpolator
-keyframe lightTimeline 1    movingLight.translateX 100 LINEAR
-keyframe lightTimeline 3000 movingLight.translateX 700 EASE_BOTH
+-- Create named KeyValues and add each one to a KeyFrame.
+keyValue timelineKV1 movingLight translateX 100 LINEAR
+keyframe lightTimeline 1 timelineKV1
+keyValue timelineKV2 movingLight translateX 700 EASE_BOTH
+keyframe lightTimeline 3000 timelineKV2
 
 winShow
 animationPlay lightTimeline
 
-pull .
+if useRedirection? then
+    sleep 15
+else
+    pull .
 
 animationStop lightTimeline
 winClose

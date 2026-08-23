@@ -28,9 +28,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Fading Rectangle (Fade Out)"
+say "-- Example: Fading Rectangle (Fade Out)"
 newImage 600 600
 winTitle "JDORFX Animation - Fading Rectangle"
 
@@ -47,13 +51,16 @@ animationPlay fadeOutAnim
 
 winshow
 
-say "Rectangle fading out once..."
-say "Press Enter to exit..."
-pull .
+say "-- Rectangle fading out once..."
+say "-- Press Enter to exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 winClose
 
-say "Animation completed!"
+say "-- Animation completed!"
 
 exit 0
 

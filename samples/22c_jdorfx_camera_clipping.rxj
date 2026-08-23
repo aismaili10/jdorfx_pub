@@ -27,7 +27,11 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 newimage 600 400 .true
 background lightblue
@@ -44,18 +48,21 @@ setCamera view
 winTitle "JDORFX - Camera Clipping Planes"
 winShow
 
-say "After 5 seconds, setting nearClip to 2000 and farClip to 3100."
+say "-- After 5 seconds, setting nearClip to 2000 and farClip to 3100."
 sleep 5
 -- Parameters: cameraName, distance
 cameraFarClip view 3100
 cameraNearClip view 2000
 
-say "After 5 more seconds, setting nearClip to 0.1."
+say "-- After 5 more seconds, setting nearClip to 0.1."
 sleep 5
 cameraNearClip view 0.1
 
-say "Only geometry between the clipping planes is visible. Press Enter to close."
-pull .
+say "-- Only geometry between the clipping planes is visible. Press Enter to close."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 winClose
 
 exit 0

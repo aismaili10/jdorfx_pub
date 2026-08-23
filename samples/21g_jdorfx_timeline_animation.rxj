@@ -29,9 +29,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .false
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Timeline / KeyFrame / KeyValue demo"
+say "-- Example: Timeline / KeyFrame / KeyValue demo"
 
 newimage 400 400
 winTitle "JDORFX Animation - Timeline KeyFrame KeyValue Demo"
@@ -53,45 +57,70 @@ fillshape rect4
 timeline loadingTimeline "-1" .false
 
 -- Add keyframes
-keyframe loadingTimeline 300 rect1.scaleX 0.60 LINEAR
-keyframe loadingTimeline 300 rect1.scaleY 0.60 LINEAR
-keyframe loadingTimeline 600 rect1.scaleX 1.0 LINEAR
-keyframe loadingTimeline 600 rect1.scaleY 1.0 LINEAR
+keyValue timelineKV1 rect1 scaleX 0.60 LINEAR
+keyframe loadingTimeline 300 timelineKV1
+keyValue timelineKV2 rect1 scaleY 0.60 LINEAR
+keyframe loadingTimeline 300 timelineKV2
+keyValue timelineKV3 rect1 scaleX 1.0 LINEAR
+keyframe loadingTimeline 600 timelineKV3
+keyValue timelineKV4 rect1 scaleY 1.0 LINEAR
+keyframe loadingTimeline 600 timelineKV4
 
-keyframe loadingTimeline 200 rect3.scaleX 1.0 LINEAR
-keyframe loadingTimeline 200 rect3.scaleY 1.0 LINEAR
-keyframe loadingTimeline 600 rect3.scaleX 0.60 LINEAR
-keyframe loadingTimeline 600 rect3.scaleY 0.60 LINEAR
-keyframe loadingTimeline 900 rect3.scaleX 1.0 LINEAR
-keyframe loadingTimeline 900 rect3.scaleY 1.0 LINEAR
+keyValue timelineKV5 rect3 scaleX 1.0 LINEAR
+keyframe loadingTimeline 200 timelineKV5
+keyValue timelineKV6 rect3 scaleY 1.0 LINEAR
+keyframe loadingTimeline 200 timelineKV6
+keyValue timelineKV7 rect3 scaleX 0.60 LINEAR
+keyframe loadingTimeline 600 timelineKV7
+keyValue timelineKV8 rect3 scaleY 0.60 LINEAR
+keyframe loadingTimeline 600 timelineKV8
+keyValue timelineKV9 rect3 scaleX 1.0 LINEAR
+keyframe loadingTimeline 900 timelineKV9
+keyValue timelineKV10 rect3 scaleY 1.0 LINEAR
+keyframe loadingTimeline 900 timelineKV10
 
-keyframe loadingTimeline 500 rect4.scaleX 1.0 LINEAR
-keyframe loadingTimeline 500 rect4.scaleY 1.0 LINEAR
-keyframe loadingTimeline 700 rect4.scaleX 0.60 LINEAR
-keyframe loadingTimeline 700 rect4.scaleY 0.60 LINEAR
-keyframe loadingTimeline 1000 rect4.scaleX 1.0 LINEAR
-keyframe loadingTimeline 1000 rect4.scaleY 1.0 LINEAR
+keyValue timelineKV11 rect4 scaleX 1.0 LINEAR
+keyframe loadingTimeline 500 timelineKV11
+keyValue timelineKV12 rect4 scaleY 1.0 LINEAR
+keyframe loadingTimeline 500 timelineKV12
+keyValue timelineKV13 rect4 scaleX 0.60 LINEAR
+keyframe loadingTimeline 700 timelineKV13
+keyValue timelineKV14 rect4 scaleY 0.60 LINEAR
+keyframe loadingTimeline 700 timelineKV14
+keyValue timelineKV15 rect4 scaleX 1.0 LINEAR
+keyframe loadingTimeline 1000 timelineKV15
+keyValue timelineKV16 rect4 scaleY 1.0 LINEAR
+keyframe loadingTimeline 1000 timelineKV16
 
-keyframe loadingTimeline 700 rect2.scaleX 1.0 LINEAR
-keyframe loadingTimeline 700 rect2.scaleY 1.0 LINEAR
-keyframe loadingTimeline 1000 rect2.scaleX 0.60 LINEAR
-keyframe loadingTimeline 1000 rect2.scaleY 0.60 LINEAR
-keyframe loadingTimeline 1300 rect2.scaleX 1.0 LINEAR
-keyframe loadingTimeline 1300 rect2.scaleY 1.0 LINEAR
+keyValue timelineKV17 rect2 scaleX 1.0 LINEAR
+keyframe loadingTimeline 700 timelineKV17
+keyValue timelineKV18 rect2 scaleY 1.0 LINEAR
+keyframe loadingTimeline 700 timelineKV18
+keyValue timelineKV19 rect2 scaleX 0.60 LINEAR
+keyframe loadingTimeline 1000 timelineKV19
+keyValue timelineKV20 rect2 scaleY 0.60 LINEAR
+keyframe loadingTimeline 1000 timelineKV20
+keyValue timelineKV21 rect2 scaleX 1.0 LINEAR
+keyframe loadingTimeline 1300 timelineKV21
+keyValue timelineKV22 rect2 scaleY 1.0 LINEAR
+keyframe loadingTimeline 1300 timelineKV22
 
 winshow
 
 animationPlay loadingTimeline
 
-say "Timeline demo is running..."
-say "Press Enter to stop animation and exit..."
-pull .
+say "-- Timeline demo is running..."
+say "-- Press Enter to stop animation and exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 animationStop loadingTimeline
 
 winClose
 
-say "Timeline demo completed!"
+say "-- Timeline demo completed!"
 
 exit 0
 

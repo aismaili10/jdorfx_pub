@@ -28,9 +28,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .false
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Timeline / KeyFrame / KeyValue demo"
+say "-- Example: Timeline / KeyFrame / KeyValue demo"
 
 newimage 600 500
 winTitle "JDORFX Animation - Timeline KeyFrame KeyValue Demo"
@@ -49,46 +53,53 @@ fillshape myRect
 timeline myTimeline "-1" .false
 
 -- Create reusable KeyValue for opacity
-keyValue fadeKV myEllipse.opacity 0.20 LINEAR
-keyValue fadeKV2 myEllipse.opacity 1.0 LINEAR
+keyValue fadeKV myEllipse opacity 0.20 LINEAR
+fadeKVObject = rc
+keyValue fadeKV2 myEllipse opacity 1.0 LINEAR
+fadeKV2Object = rc
 
-keyValue fadeKV3 myRect.opacity 0.20 LINEAR
-keyValue fadeKV4 myRect.opacity 1.0 LINEAR
+keyValue fadeKV3 myRect opacity 0.20 LINEAR
+fadeKV3Object = rc
+keyValue fadeKV4 myRect opacity 1.0 LINEAR
+fadeKV4Object = rc
 
+keyValue ellipseForwardKV myEllipse translateX 400 LINEAR
+ellipseForwardKVObject = rc
+keyValue ellipseBackKV myEllipse translateX 0 LINEAR
+ellipseBackKVObject = rc
+keyValue rectForwardKV myRect translateX 400 LINEAR
+rectForwardKVObject = rc
+keyValue rectBackKV myRect translateX 0 LINEAR
+rectBackKVObject = rc
 
--- Add keyframes
-keyframe myTimeline 1000 fadeKV
-keyframe myTimeline 2000 fadeKV2
-keyframe myTimeline 3000 fadeKV
-keyframe myTimeline 4000 fadeKV2
+-- Group every timestamp s property targets in a typed Java KeyValue[].
+valuesAt1000 = bsf.createJavaArrayOf("javafx.animation.KeyValue", fadeKVObject, fadeKV3Object)
+valuesAt2000 = bsf.createJavaArrayOf("javafx.animation.KeyValue", fadeKV2Object, fadeKV4Object, ellipseForwardKVObject, rectForwardKVObject)
+valuesAt3000 = bsf.createJavaArrayOf("javafx.animation.KeyValue", fadeKVObject, fadeKV3Object)
+valuesAt4000 = bsf.createJavaArrayOf("javafx.animation.KeyValue", fadeKV2Object, fadeKV4Object, ellipseBackKVObject, rectBackKVObject)
 
-keyframe myTimeline 1000 fadeKV3
-keyframe myTimeline 2000 fadeKV4
-keyframe myTimeline 3000 fadeKV3
-keyframe myTimeline 4000 fadeKV4
-
-
--- Animate movement on X at the same timeline moments
-keyframe myTimeline 2000 myEllipse.translateX 400 LINEAR
-keyframe myTimeline 4000 myEllipse.translateX 0 LINEAR
-
-keyframe myTimeline 2000 myRect.translateX 400 LINEAR
-keyframe myTimeline 4000 myRect.translateX 0 LINEAR
+keyframe myTimeline 1000 "valuesAt1000"
+keyframe myTimeline 2000 "valuesAt2000"
+keyframe myTimeline 3000 "valuesAt3000"
+keyframe myTimeline 4000 "valuesAt4000"
 
 -- Play timeline
 animationPlay myTimeline
 
 winshow
 
-say "Timeline demo is running..."
-say "Press Enter to stop animation and exit..."
-pull .
+say "-- Timeline demo is running..."
+say "-- Press Enter to stop animation and exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 animationStop myTimeline
 
 winClose
 
-say "Timeline demo completed!"
+say "-- Timeline demo completed!"
 
 exit 0
 

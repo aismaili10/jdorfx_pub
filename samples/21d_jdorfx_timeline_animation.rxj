@@ -28,9 +28,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .false
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Timeline / KeyFrame / KeyValue demo"
+say "-- Example: Timeline / KeyFrame / KeyValue demo"
 
 newimage 400 400
 winTitle "JDORFX Animation - Timeline KeyFrame KeyValue Demo"
@@ -51,27 +55,35 @@ timeline initialOpacityTimeline 1 .false
 timeline loadingTimeline "-1" .true
 
 -- Create reusable KeyValue
-keyValue initialOpacityKV1 circle1.opacity 0.20 LINEAR
-keyValue initialOpacityKV2 circle2.opacity 0.20 LINEAR
-keyValue initialOpacityKV3 circle3.opacity 0.20 LINEAR
+keyValue initialOpacityKV1 circle1 opacity 0.20 LINEAR
+initialOpacityKV1Object = rc
+keyValue initialOpacityKV2 circle2 opacity 0.20 LINEAR
+initialOpacityKV2Object = rc
+keyValue initialOpacityKV3 circle3 opacity 0.20 LINEAR
+initialOpacityKV3Object = rc
 
-keyValue fadeKV1 circle1.opacity 0.20 LINEAR
-keyValue fadeKV2 circle1.opacity 1.0 LINEAR
-keyValue fadeKV3 circle2.opacity 0.20 LINEAR
-keyValue fadeKV4 circle2.opacity 1.0 LINEAR
-keyValue fadeKV5 circle3.opacity 0.20 LINEAR
-keyValue fadeKV6 circle3.opacity 1.0 LINEAR
+keyValue fadeKV1 circle1 opacity 0.20 LINEAR
+fadeKV1Object = rc
+keyValue fadeKV2 circle1 opacity 1.0 LINEAR
+fadeKV2Object = rc
+keyValue fadeKV3 circle2 opacity 0.20 LINEAR
+fadeKV3Object = rc
+keyValue fadeKV4 circle2 opacity 1.0 LINEAR
+fadeKV4Object = rc
+keyValue fadeKV5 circle3 opacity 0.20 LINEAR
+fadeKV5Object = rc
+keyValue fadeKV6 circle3 opacity 1.0 LINEAR
+fadeKV6Object = rc
 
--- Add keyframes
-keyframe initialOpacityTimeline 1 initialOpacityKV1
-keyframe initialOpacityTimeline 1 initialOpacityKV2
-keyframe initialOpacityTimeline 1 initialOpacityKV3
+initialOpacityValues = bsf.createJavaArrayOf("javafx.animation.KeyValue", initialOpacityKV1Object, initialOpacityKV2Object, initialOpacityKV3Object)
+valuesAt300 = bsf.createJavaArrayOf("javafx.animation.KeyValue", fadeKV2Object, fadeKV3Object)
+valuesAt600 = bsf.createJavaArrayOf("javafx.animation.KeyValue", fadeKV4Object, fadeKV5Object)
 
+-- Add single-KeyValue and KeyValue[] keyframes.
+keyframe initialOpacityTimeline 1 "initialOpacityValues"
 keyframe loadingTimeline 10 fadeKV1
-keyframe loadingTimeline 300 fadeKV2
-keyframe loadingTimeline 300 fadeKV3
-keyframe loadingTimeline 600 fadeKV4
-keyframe loadingTimeline 600 fadeKV5
+keyframe loadingTimeline 300 "valuesAt300"
+keyframe loadingTimeline 600 "valuesAt600"
 keyframe loadingTimeline 900 fadeKV6
 
 
@@ -80,16 +92,19 @@ animationPlay initialOpacityTimeline
 sleep 0.1
 animationPlay loadingTimeline
 
-say "Timeline demo is running..."
-say "Press Enter to stop animation and exit..."
-pull .
+say "-- Timeline demo is running..."
+say "-- Press Enter to stop animation and exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 animationStop initialOpacityTimeline
 animationStop loadingTimeline
 
 winClose
 
-say "Timeline demo completed!"
+say "-- Timeline demo completed!"
 
 exit 0
 

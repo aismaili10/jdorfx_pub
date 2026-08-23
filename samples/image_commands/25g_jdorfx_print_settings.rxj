@@ -28,31 +28,35 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 -- Query and change the print scale.
 printScale
-say "Default print scale:" rc
+say "-- Default print scale:" rc
 printScale 2
-say "Previous print scale:" rc
+say "-- Previous print scale:" rc
 printScale
-say "Updated print scale:" rc
+say "-- Updated print scale:" rc
 
 -- Query and change the print position.
 printPos
-say "Default print position:" rc
+say "-- Default print position:" rc
 printPos 12.4
-say "Previous print position:" rc
+say "-- Previous print position:" rc
 printPos
-say "Updated print position:" rc
+say "-- Updated print position:" rc
 
 -- Query and enable proportional scale-to-page behavior.
 printScaleToPage
-say "Default scale-to-page:" rc
+say "-- Default scale-to-page:" rc
 printScaleToPage .true
-say "Previous scale-to-page:" rc
+say "-- Previous scale-to-page:" rc
 printScaleToPage
-say "Updated scale-to-page:" rc
+say "-- Updated scale-to-page:" rc
 
 -- printImage             -- submits the current image to the default printer
 -- printImage IMAGE_NAME  -- prints a registered image or image in a Rexx variable

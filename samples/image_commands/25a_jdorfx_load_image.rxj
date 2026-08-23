@@ -28,12 +28,16 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 -- Load an image and register it under the name OOREXX_LOGO.
 -- Parameters: imageName, pathName
 loadImage OOREXX_LOGO "../oorexx_256.png"
-say "Loaded image dimensions:" rc
+say "-- Loaded image dimensions:" rc
 
 exit 0
 

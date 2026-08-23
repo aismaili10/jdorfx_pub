@@ -25,9 +25,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Create a new scene and set ambient light to red"
+say "-- Create a new scene and set ambient light to red"
 -- creating a new window with size 500 x 500
 newimage 500 500
 -- show created window
@@ -74,42 +78,42 @@ light ambientYellowLight ambient yellow
 light blueLight  point 400 200 (-100) blue
 light greenLight point 100 200 100    green
 -- turn ambientLight on
-say "Turning on ambient red light named 'ambientRedLight'"
-say "Sleep for 3 seconds"
+say "-- Turning on ambient red light named 'ambientRedLight'"
+say "-- Sleep for 3 seconds"
 setlight ambientRedLight   -- turn on
 sleep 3
 -- create and add new point lights to scene
-say
-say "Turning on blue point light named 'blueLight'"
-say "   Location point light blue: x=400 y=200 z=-100"
-say "Sleep for 3 seconds"
+say "-- "
+say "-- Turning on blue point light named 'blueLight'"
+say "--    Location point light blue: x=400 y=200 z=-100"
+say "-- Sleep for 3 seconds"
 setlight blueLight         -- turn on
 sleep 3
 
-say "Turning on green point light named 'greenLight'"
-say "   Location point light green: x=100 y=200 z=100"
-say "Sleep for 3 seconds"
+say "-- Turning on green point light named 'greenLight'"
+say "--    Location point light green: x=100 y=200 z=100"
+say "-- Sleep for 3 seconds"
 setlight greenLight        -- turn on
 sleep 3
 
-say "Turning off ambient red light (named 'ambientRedLight')"
+say "-- Turning off ambient red light (named 'ambientRedLight')"
 setlight ambientRedLight turnoff
-say "Sleep for 3 seconds"
+say "-- Sleep for 3 seconds"
 sleep 3
 
-say "Turning off point blue light (named 'blueLight')"
+say "-- Turning off point blue light (named 'blueLight')"
 setlight blueLight turnoff
-say "Sleep for 3 seconds"
+say "-- Sleep for 3 seconds"
 sleep 3
 
-say "Turning on ambient yellow light (named 'ambientYellowLight')"
+say "-- Turning on ambient yellow light (named 'ambientYellowLight')"
 setlight ambientYellowLight
-say "Sleep for 3 seconds"
+say "-- Sleep for 3 seconds"
 sleep 3
 
-say "Turning off ambient yellow light (named 'ambientYellowLight')"
+say "-- Turning off ambient yellow light (named 'ambientYellowLight')"
 setlight ambientYellowLight turnoff
-say "Sleep for 3 seconds"
+say "-- Sleep for 3 seconds"
 sleep 3
 
 

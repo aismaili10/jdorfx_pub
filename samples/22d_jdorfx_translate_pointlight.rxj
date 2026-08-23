@@ -27,7 +27,11 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 newimage 600 400 .true
 background black
@@ -51,8 +55,11 @@ sleep 5
 translatePointLight lamp 260 0 0
 
 winTitle "translatePointLight lamp 260 0 0"
-say "The translated light illuminates the sphere from the right. Press Enter."
-pull .
+say "-- The translated light illuminates the sphere from the right. Press Enter."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 winClose
 
 exit 0

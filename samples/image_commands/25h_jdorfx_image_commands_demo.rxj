@@ -3,7 +3,7 @@
    license Code:
 
     ------------------------ Apache Version 2.0 license -------------------------
-       Copyright (C) 2026 Alireza Ismaili
+       Copyright (C) 2026 Alireza Ismaili, Rony G. Flatscher
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -20,6 +20,16 @@
 
 */
 
+/*
+   Usage: rexx 25h_jdorfx_image_commands_demo.rxj [ClipboardDemo] [PrintDemo] [otherToRediret]
+          ... arguments may use first letter only (any argument activates redirection)
+              ...  C ... run clipboard demo
+                   P ... run printer demo
+                   else run stdout and stderr redirection
+*/
+
+
+
 /* ========================================================================
    JDORFX Image Example: Image Commands Integration Demo
    ======================================================================== */
@@ -32,12 +42,36 @@
 -- Set either flag to .true to enable the corresponding external operation.
 runClipboardDemo = .false
 runPrinterDemo   = .false -- dflt printer must be set
+useRedirection?  = .false
+
+-- if command-line arguments, then a) use redirection, and b) process arguments
+parse upper arg opt1 opt2 .
+if opt1<>"" then
+do
+   useRedirection? = .true    -- we use stdout and stderr redirection for this run
+      -- check first letter
+   pos1 = pos(opt1~left(1),"CP") -- first letter
+   pos2 = pos(opt2~left(1),"CP") -- first letter
+   runClipboardDemo = (pos1=1 | pos2=1)   -- clipboard demo
+   runPrinterDemo   = (pos1=2 | pos2=2)   -- printer demo
+end
+
+say "settings in effect:"
+say "   use redirection?" useRedirection?
+say "   clipboard demo? " runClipboardDemo
+say "   printer demo?   " runPrinterDemo
+
 
 -- create JDORFX handler
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+if useRedirection? then
+  address jdorfx with output using (.output) error using (.error)
+else
+  address jdorfx
+
+
 
 -- Create a normal JDORFX drawing.
 newimage 900 560
@@ -61,7 +95,7 @@ fillRoundRect 180 100 25 25
 -- Save and restore drawing state with the image stack.
 pushImage BASE_DRAWING
 pushedImage = rc
-say "Pushed BufferedImage:" pushedImage~getWidth "x" pushedImage~getHeight
+say "-- Pushed BufferedImage:" pushedImage~getWidth "x" pushedImage~getHeight
 
 -- This temporary blue overlay is removed visually by popImage.
 color BLUE
@@ -69,11 +103,11 @@ moveTo 0 0
 fillRect 900 560
 popImage
 poppedImage = rc
-say "Popped BufferedImage:" poppedImage~getWidth "x" poppedImage~getHeight
+say "-- Popped BufferedImage:" poppedImage~getWidth "x" poppedImage~getHeight
 
 -- Load and draw an external image with every drawImage overload.
 loadImage OOREXX_LOGO "../oorexx_256.png"
-say "Loaded dimensions:" rc
+say "-- Loaded dimensions:" rc
 
 moveTo 30 250
 drawImage OOREXX_LOGO
@@ -84,22 +118,22 @@ drawImage OOREXX_LOGO 180 180 WHITE
 
 -- Query registered and current images.
 imageSize OOREXX_LOGO
-say "Registry dimensions:" rc
+say "-- Registry dimensions:" rc
 image OOREXX_LOGO
 loadedImage = rc
-say "Returned class:" loadedImage~getClass~getName
+say "-- Returned class:" loadedImage~getClass~getName
 imageSize "loadedImage"
-say "Rexx-variable dimensions:" rc
+say "-- Rexx-variable dimensions:" rc
 
 image
 currentImage = rc
-say "Current canvas snapshot:" currentImage~getWidth "x" currentImage~getHeight
+say "-- Current canvas snapshot:" currentImage~getWidth "x" currentImage~getHeight
 
 -- Make independent image copies.
 imageCopy OOREXX_LOGO
 logoCopy = rc
 imageSize "logoCopy"
-say "Transparent copy dimensions:" rc
+say "-- Transparent copy dimensions:" rc
 
 -- imageCopy OOREXX_LOGO WHITE
 -- opaqueLogoCopy = rc
@@ -109,11 +143,11 @@ say "Transparent copy dimensions:" rc
 
 -- Configure printing; setting commands return their previous values.
 printScale 0.75
-say "Previous print scale:" rc
+say "-- Previous print scale:" rc
 printPos 20 30
-say "Previous print position:" rc
+say "-- Previous print position:" rc
 printScaleToPage .true
-say "Previous scale-to-page setting:" rc
+say "-- Previous scale-to-page setting:" rc
 
 if runClipboardDemo then do
     -- Copy the current canvas to the system clipboard and read it back.
@@ -121,31 +155,34 @@ if runClipboardDemo then do
     clipboardGet DEMO_CLIPBOARD
     clipboardImage = rc
     imageSize DEMO_CLIPBOARD
-    say "Clipboard dimensions:" rc
+    say "-- Clipboard dimensions:" rc
 
     clipboardSetWithoutAlpha DEMO_CLIPBOARD
     clipboardOpaqueImage = rc
-    say "Clipboard no-alpha result has alpha:" clipboardOpaqueImage~getColorModel~hasAlpha
+    say "-- Clipboard no-alpha result has alpha:" clipboardOpaqueImage~getColorModel~hasAlpha
 end
-else say "Clipboard demo skipped; set runClipboardDemo=.true to enable it"
+else say "-- Clipboard demo skipped; set runClipboardDemo=.true to enable it"
 
 -- Save the completed canvas.
 saveImage "25h_jdorfx_image_commands_demo.png"
-say "Image saved:" rc
+say "-- Image saved:" rc
 
 if runPrinterDemo then do
     -- Submit the current image, then the registered logo, to the default printer.
     printImage
     printImage OOREXX_LOGO
 end
-else say "Printer demo skipped; set runPrinterDemo=.true to enable it"
+else say "-- Printer demo skipped; set runPrinterDemo=.true to enable it"
 
 -- imageType and preferredImageType are deliberately not demonstrated:
 -- JavaFX Canvas has no faithful equivalent of BufferedImage raster types.
 
 winShow
-say "The completed image is displayed. Press Enter to exit."
-pull .
+say "-- The completed image is displayed. Press Enter to exit."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 winClose
 
 exit 0

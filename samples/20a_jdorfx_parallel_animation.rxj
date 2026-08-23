@@ -28,9 +28,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Parallel Animation"
+say "-- Example: Parallel Animation"
 newimage 500 500 .true
 winTitle "JDORFX Animation - Parallel Animation"
 
@@ -103,13 +107,16 @@ setcamera camera
 
 winShow
 
-say "Box translating ..."
-say "Press Enter to exit..."
-pull .
+say "-- Box translating ..."
+say "-- Press Enter to exit..."
+if useRedirection? then
+    sleep 10
+else
+    pull .
 
 animationStop parAnim
 
-say "Animation completed!"
+say "-- Animation completed!"
 
 exit 0
 

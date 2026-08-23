@@ -1,3 +1,5 @@
+#!/usr/bin/env rexx
+
 -- create a JDOR handler
 jdor=.bsf~new("org.oorexx.handlers.jdor.JavaDrawingHandler")
 call BsfCommandHandler "add", "JDOR", jdor   -- add the JDOR handler to ooRexx

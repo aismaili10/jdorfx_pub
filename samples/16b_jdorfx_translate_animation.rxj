@@ -28,9 +28,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Translating 3D Shapes"
+say "-- Example: Translating 3D Shapes"
 
 newimage 700 700 .true
 winTitle "JDORFX Animation - 3D Translation"
@@ -95,15 +99,18 @@ setcamera camera
 
 winShow
 
-say "3D Shapes translating ..."
-say "Press Enter to exit..."
-pull .
+say "-- 3D Shapes translating ..."
+say "-- Press Enter to exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 do i = 1 to 5
     animationStop "translateAnim" || i
 end
 
-say "Animation completed!"
+say "-- Animation completed!"
 
 exit 0
 

@@ -29,9 +29,13 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .false
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
-say "Example: Timeline / KeyFrame / KeyValue demo"
+say "-- Example: Timeline / KeyFrame / KeyValue demo"
 
 newimage 600 400 .true
 winTitle "JDORFX Animation - Timeline KeyFrame KeyValue Demo"
@@ -66,7 +70,8 @@ timeline moonTimeline "-1" .true
 
 -- Add keyframes
 -- spline interpolator for slower middle movement
-keyframe moonTimeline 6000 moon.translateX 450 "SPLINE(0.30,0.80,0.70,0.20)"
+keyValue timelineKV1 moon translateX 450 "SPLINE(0.30,0.80,0.70,0.20)"
+keyframe moonTimeline 6000 timelineKV1
 
 
 camera myCamera perspective 0 0 0
@@ -91,15 +96,18 @@ winshow
 
 animationPlay moonTimeline
 
-say "Timeline demo is running..."
-say "Press Enter to stop animation and exit..."
-pull .
+say "-- Timeline demo is running..."
+say "-- Press Enter to stop animation and exit..."
+if useRedirection? then
+    sleep 5
+else
+    pull .
 
 animationStop moonTimeline
 
 winClose
 
-say "Timeline demo completed!"
+say "-- Timeline demo completed!"
 
 exit 0
 

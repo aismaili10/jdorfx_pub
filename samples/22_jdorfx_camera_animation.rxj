@@ -27,7 +27,11 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 newimage 1000 900 .true
 
@@ -63,8 +67,11 @@ setCamera view
 winTitle "JDORFX Animation - Camera Rotation"
 winShow
 
-say "The camera rotates continuously around the box. Press Enter to exit."
-pull .
+say "-- The camera rotates continuously around the box. Press Enter to exit."
+if useRedirection? then
+    sleep 10
+else
+    pull .
 
 animationStop cameraTurn
 winClose

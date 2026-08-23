@@ -28,7 +28,11 @@
 -- load and add the Java Rexx command handler, using default name: JDORFX
 call addJdorFXHandler
 -- set default environment to JDORFX
-address jdorfx
+useRedirection? = .true
+if useRedirection? then
+    address jdorfx with output using (.stdout) error using (.stderr)
+else
+    address jdorfx
 
 -- Create a partly transparent image.
 newimage 40 30
@@ -39,23 +43,23 @@ fillRect 20 30
 -- Copy the current image to the system clipboard.
 setClipboard
 setImage = rc
-say "Set image dimensions:" setImage~getWidth setImage~getHeight
+say "-- Set image dimensions:" setImage~getWidth setImage~getHeight
 
 -- Read the clipboard image and register it as COPIED_IMAGE.
 getClipboard COPIED_IMAGE
 clipboardImage = rc
 imageSize COPIED_IMAGE
-say "Retrieved image dimensions:" rc
+say "-- Retrieved image dimensions:" rc
 
 -- Copy an opaque version of the registered image to the clipboard.
 setClipboardWithoutAlpha COPIED_IMAGE
 opaqueImage = rc
-say "Opaque image has alpha:" opaqueImage~getColorModel~hasAlpha
+say "-- Opaque image has alpha:" opaqueImage~getColorModel~hasAlpha
 
 -- The clipboard aliases use CLIPBOARD as the default registry name.
 clipboardGet
 imageSize CLIPBOARD
-say "Default clipboard registry dimensions:" rc
+say "-- Default clipboard registry dimensions:" rc
 
 exit 0
 
