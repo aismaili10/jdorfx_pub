@@ -479,6 +479,7 @@ pathTransition
 	String pathName		-- Name of path shape to follow
 	[Integer cycleCount]	-- Number of cycles (-1 for infinite, default=1)
 	[Boolean autoReverse]	-- .true or .false (default=.false)
+	[String orientation]	-- NONE or ORTHOGONAL_TO_TANGENT (default=NONE)
 
 animationFill
 fillTransition
@@ -574,21 +575,29 @@ timeline
 keyframe
 	String timelineName	-- Adds a keyframe to specified timeline
 	Double time		-- Time in milliseconds for this keyframe
-	String keyValueName	-- Reusable keyValue name (optional form)
-
-keyframe
-	String timelineName	-- Adds a keyframe to specified timeline
-	Double time		-- Time in milliseconds for this keyframe
-	String propertyName	-- [nodeName.]propertyName to animate
-	String targetValue	-- Target value at this time
-	[String interpolator]	-- LINEAR|DISCRETE|EASE_IN|EASE_OUT|EASE_BOTH|SPLINE(x1,y1,x2,y2)
+	String keyValueNameOrArray -- Registered KeyValue name or Rexx variable containing a Java KeyValue[]
 
 keyValue
 	String keyValueName	-- Creates reusable keyValue object
-	String propertyName	-- [nodeName.]propertyName to animate
+	String nodeName		-- Named node to animate
+	String propertyName	-- Property to animate
 	String targetValue	-- Target value
 	[String interpolator]	-- LINEAR|DISCRETE|EASE_IN|EASE_OUT|EASE_BOTH|SPLINE(x1,y1,x2,y2)
 ```
+
+```rexx
+keyValue moveKV myShape translateX 300 LINEAR
+moveKVObject = rc
+keyValue fadeKV myShape opacity 0.25 EASE_BOTH
+fadeKVObject = rc
+valuesAt1000 = bsf.createJavaArrayOf("javafx.animation.KeyValue", moveKVObject, fadeKVObject)
+keyframe myTimeline 1000 "valuesAt1000"
+```
+
+The array must be a non-empty Java `javafx.animation.KeyValue[]` and must not
+contain null elements.
+Quote the array variable name in the `keyframe` command so Rexx passes its name
+to the handler instead of substituting the array object's string representation.
 
 ## Image, clipboard, and printing commands
 
