@@ -67,4 +67,4 @@ winclose
 exit 0
 
 -- Load the ooRexx-Java bridge from the parent samples directory.
-::requires "../jdorfx.cls"
+::requires "jdorfx.cls"

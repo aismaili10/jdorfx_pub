@@ -66,4 +66,4 @@ say "-- Background copy dimensions:" rc
 exit 0
 
 -- get ooRexx-Java bridge, contains JDORFX Rexx command handler
-::requires "../jdorfx.cls"
+::requires "jdorfx.cls"
